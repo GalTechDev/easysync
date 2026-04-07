@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="easysync",
+    name="py-easysync",
     version="0.1.0",
     author="GalTechDev",
     description="Universal real-time state synchronization for Python.",
