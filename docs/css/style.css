@@ -98,6 +98,20 @@ section { padding: var(--space-3xl) 0; }
 .nav-links { display: flex; gap: var(--space-lg); list-style: none; }
 .nav-links a { color: var(--text-secondary); font-size: 0.9rem; }
 .nav-links a:hover { color: var(--text-primary); }
+.lang-toggle {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.2s;
+    letter-spacing: 0.05em;
+}
+.lang-toggle:hover { background: rgba(255, 255, 255, 0.15); color: var(--text-primary); }
 
 /* Hero */
 .hero {
