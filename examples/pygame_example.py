@@ -1,6 +1,5 @@
 import sys
 import os
-import threading
 import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -10,7 +9,7 @@ from easysync import SyncedObject, SyncServer, connect
 try:
     import pygame
 except ImportError:
-    print("Erreur : pygame n'est pas installé (pip install pygame)")
+    print("Error: pygame is not installed (pip install pygame)")
     sys.exit(1)
 
 
@@ -34,7 +33,7 @@ def main():
 
     pygame.init()
     if is_server:
-        pygame.display.set_caption("EasySync (HOTE)")
+        pygame.display.set_caption("EasySync (HOST)")
         color = (255, 50, 50)
     else:
         pygame.display.set_caption("EasySync (CLIENT)")

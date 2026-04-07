@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from easysync import SyncedObject, SyncServer, connect
 
-TARGET_DNA = "EASYSYNC LA GENETIQUE DISTRIBUEE"
+TARGET_DNA = "EASYSYNC DISTRIBUTED GENETICS"
 ALPHABET = string.ascii_uppercase + " "
 
 
@@ -31,7 +31,7 @@ def main():
         time.sleep(0.5)
 
     client = connect("127.0.0.1", 5000)
-    worker_id = f"Ile_{uuid.uuid4().hex[:4]}" if not is_server else "Orchestrateur"
+    worker_id = f"Island_{uuid.uuid4().hex[:4]}" if not is_server else "Orchestrator"
 
     @SyncedObject(client)
     class GeneticWorld:
@@ -79,11 +79,11 @@ def main():
                 last_exchange = time.time()
 
             screen.fill((30, 30, 45))
-            title = font_large.render("ORCHESTRATEUR GLOBAL", True, (255, 200, 0))
+            title = font_large.render("GLOBAL ORCHESTRATOR", True, (255, 200, 0))
             screen.blit(title, (sw // 2 - title.get_width() // 2, 30))
-            info = font_small.render(f"Iles connectées : {len(world.client_champions)}", True, (200, 200, 200))
+            info = font_small.render(f"Connected islands: {len(world.client_champions)}", True, (200, 200, 200))
             screen.blit(info, (sw // 2 - info.get_width() // 2, 80))
-            info2 = font_small.render(f"Époque mondiale : {world.epoch}", True, (255, 100, 255))
+            info2 = font_small.render(f"Global epoch: {world.epoch}", True, (255, 100, 255))
             screen.blit(info2, (sw // 2 - info2.get_width() // 2, 110))
 
             if world.world_champions:
@@ -136,15 +136,15 @@ def main():
                 generation += 1
 
             screen.fill((20, 40, 25))
-            title = font_large.render(f"ILE: {worker_id}", True, (100, 255, 100))
+            title = font_large.render(f"ISLAND: {worker_id}", True, (100, 255, 100))
             screen.blit(title, (sw // 2 - title.get_width() // 2, 30))
-            gen = font_small.render(f"Génération locale : {generation}", True, (200, 255, 200))
+            gen = font_small.render(f"Local generation: {generation}", True, (200, 255, 200))
             screen.blit(gen, (sw // 2 - gen.get_width() // 2, 80))
 
-            target_surf = font_small.render("Cible : " + TARGET_DNA, True, (80, 100, 80))
+            target_surf = font_small.render("Target: " + TARGET_DNA, True, (80, 100, 80))
             screen.blit(target_surf, (sw // 2 - target_surf.get_width() // 2, 200))
             pct = int((best_score / len(TARGET_DNA)) * 100)
-            draw_dna(screen, best_dna, 250, f"Meilleur spécimen ({pct}%)")
+            draw_dna(screen, best_dna, 250, f"Best specimen ({pct}%)")
 
             pygame.display.flip()
             clock.tick(30)

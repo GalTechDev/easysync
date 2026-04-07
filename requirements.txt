@@ -1,2 +1,2 @@
-# EasySync n'a aucune dépendance externe pour fonctionner.
-# Ce fichier est vide volontairement.
+# EasySync has no external dependencies.
+# This file is intentionally empty.

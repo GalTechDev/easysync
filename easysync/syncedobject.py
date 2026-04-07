@@ -9,7 +9,7 @@ _default_client = None
 
 
 class SyncedProxy:
-    """Proxy transparent qui intercepte les mutations et déclenche le callback réseau."""
+    """Transparent proxy that intercepts mutations and triggers the network callback."""
 
     def __init__(self, target, callback):
         object.__setattr__(self, "_target", target)
@@ -78,8 +78,8 @@ class SyncedProxy:
 
 
 def _deep_wrap(value, callback):
-    """Enveloppe récursivement un objet dans un SyncedProxy.
-    Les types immuables et les extensions C (numpy, pandas) sont exclus."""
+    """Recursively wraps an object in a SyncedProxy.
+    Immutable types and C-extensions (numpy, pandas) are excluded."""
     import numbers
     if value is None or isinstance(value, (numbers.Number, str, bool, tuple, bytes)):
         return value
@@ -92,7 +92,7 @@ def _deep_wrap(value, callback):
 
 
 def _unproxy(value):
-    """Retire récursivement les couches de proxy pour obtenir l'objet brut."""
+    """Recursively strips proxy layers to get the raw object."""
     if isinstance(value, SyncedProxy):
         return _unproxy(object.__getattribute__(value, "_target"))
     if type(value) is list:
@@ -102,7 +102,7 @@ def _unproxy(value):
     return value
 
 
-# ---------- Registre global et boucle de surveillance ----------
+# ---------- Global registry and polling loop ----------
 
 _master_synced_vars = []
 _master_synced_objects = weakref.WeakSet()
@@ -110,7 +110,7 @@ _master_poller_thread = None
 
 
 def _master_poller_loop():
-    """Thread unique qui surveille les mutations locales non interceptées."""
+    """Single thread that watches for unintercepted local mutations."""
     while True:
         time.sleep(0.05)
         for var in list(_master_synced_vars):
@@ -127,7 +127,7 @@ def _master_poller_loop():
 
 
 def _handle_sync_request():
-    """Réponse à une demande de resynchronisation d'un client."""
+    """Responds to a resync request from a newly connected client."""
     for var in _master_synced_vars:
         if var._client:
             var._client.send_update(var.var_name, "value", var.last_val)
@@ -147,10 +147,10 @@ def _handle_sync_request():
             pass
 
 
-# ---------- API publique ----------
+# ---------- Public API ----------
 
 def connect(host="localhost", port=5000):
-    """Se connecte à un SyncServer distant et retourne le client."""
+    """Connect to a remote SyncServer and return the client instance."""
     global _default_client
     _default_client = SyncClient(host=host, port=port)
     _default_client.on_sync_request_callback = _handle_sync_request
@@ -159,12 +159,12 @@ def connect(host="localhost", port=5000):
 
 
 def get_client():
-    """Retourne le client par défaut."""
+    """Return the default client."""
     return _default_client
 
 
 def SyncedObject(client=None):
-    """Décorateur de classe : synchronise les attributs publics sur le réseau."""
+    """Class decorator: synchronizes public attributes over the network."""
     def decorator(cls):
         _object_id = cls.__qualname__
         original_init = cls.__init__ if hasattr(cls, "__init__") else None
@@ -216,7 +216,7 @@ def SyncedObject(client=None):
 
 
 def _apply_update(obj, message):
-    """Applique une mise à jour reçue du réseau sur l'objet local."""
+    """Apply a network update to the local object."""
     attr_name = message.get("attr_name")
     value = message.get("value")
 
@@ -234,7 +234,7 @@ def _apply_update(obj, message):
 
 
 class SyncedVar:
-    """Variable simple synchronisée sur le réseau."""
+    """Simple network-synchronized variable."""
 
     def __init__(self, value=None, client=None):
         global _master_poller_thread
@@ -261,7 +261,7 @@ class SyncedVar:
             pass
 
         if not self.var_name:
-            raise ValueError("Impossible de résoudre le nom de variable.")
+            raise ValueError("Could not resolve variable name.")
 
         self.last_val = self.namespace.get(self.var_name, value)
         self._updating = False

@@ -1,8 +1,11 @@
 # EasySync
 
-Synchronisation universelle d'états Python en temps réel sur le réseau.
+Universal real-time state synchronization for Python.
 
-Manipulez vos objets Python comme si le réseau n'existait pas. EasySync intercepte les mutations d'attributs via un proxy transparent et les propage instantanément à toutes les machines connectées au serveur.
+![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+
+Manipulate your Python objects as if the network didn't exist. EasySync intercepts attribute mutations through a transparent proxy and propagates them instantly to all machines connected to the server.
 
 ## Installation
 
@@ -10,9 +13,9 @@ Manipulez vos objets Python comme si le réseau n'existait pas. EasySync interce
 pip install easysync
 ```
 
-## Démarrage rapide
+## Quick Start
 
-**Serveur** (héberge l'état partagé) :
+**Server** (hosts the shared state):
 
 ```python
 from easysync import SyncedObject, SyncServer, connect
@@ -29,11 +32,11 @@ class GameState:
         self.players = []
 
 state = GameState()
-state.score = 42           # propagé à tous les clients
-state.players.append("A")  # propagé aussi
+state.score = 42           # propagated to all clients
+state.players.append("A")  # propagated too
 ```
 
-**Client** (rejoint le serveur) :
+**Client** (joins the server):
 
 ```python
 from easysync import SyncedObject, connect
@@ -47,53 +50,53 @@ class GameState:
         self.players = []
 
 state = GameState()
-print(state.score)    # 42, mis à jour en temps réel
+print(state.score)    # 42, updated in real time
 print(state.players)  # ['A']
 ```
 
 ## Architecture
 
-Le serveur utilise `asyncio` pour gérer les connexions de manière non-bloquante, ce qui permet de supporter un grand nombre de clients simultanés sans surcharge CPU. Le client utilise un thread de réception dédié pour rester compatible avec les boucles applicatives classiques (Pygame, Matplotlib, etc.).
+The server uses `asyncio` for non-blocking connection handling, allowing it to support a large number of simultaneous clients without CPU overhead. The client uses a dedicated receive thread to remain compatible with standard application loops (Pygame, Matplotlib, etc.).
 
-Le protocole réseau repose sur une sérialisation Pickle binaire encadrée par un header de 4 octets (taille du payload). Ce choix garantit une latence mesurée inférieure à 20ms.
+The wire protocol relies on binary Pickle serialization framed by a 4-byte header (payload size). This ensures measured latency under 20ms.
 
-## Fonctionnalités
+## Features
 
-- **Zéro configuration** : un décorateur `@SyncedObject` suffit.
-- **Proxy transparent** : interception automatique de `__setattr__`, `__setitem__`, `append`, `pop`, etc.
-- **Serveur asyncio** : basé sur `asyncio.start_server` pour une scalabilité maximale.
-- **Sérialisation binaire** : protocole Pickle + framing TCP, latence < 20ms.
-- **Zéro dépendance** : n'utilise que la bibliothèque standard Python.
-- **Compatible Data Science** : gestion optimisée des objets NumPy, Pandas et Scikit-Learn via le pattern de ré-assignation.
+- **Zero configuration**: a single `@SyncedObject` decorator is all you need.
+- **Transparent proxy**: automatic interception of `__setattr__`, `__setitem__`, `append`, `pop`, etc.
+- **Asyncio server**: built on `asyncio.start_server` for maximum scalability.
+- **Binary serialization**: Pickle + TCP framing protocol, latency < 20ms.
+- **Zero dependencies**: only uses the Python standard library.
+- **Data Science ready**: optimized handling of NumPy, Pandas and Scikit-Learn objects via the copy-and-reassign pattern.
 
-## Exemples
+## Examples
 
-Le dossier `examples/` contient plusieurs démonstrations :
+The `examples/` folder contains several demos:
 
-| Fichier | Description |
+| File | Description |
 |---|---|
-| `pygame_example.py` | Carré synchronisé entre deux fenêtres Pygame |
-| `pygame_hanoi.py` | Tours de Hanoï collaboratives |
-| `numpy_matplotlib_example.py` | Streaming de données NumPy avec graphique Matplotlib |
-| `pandas_example.py` | Tableur Pandas collaboratif |
-| `sklearn_live_training.py` | Entraînement Scikit-Learn visible en temps réel |
-| `federated_learning_example.py` | Apprentissage fédéré distribué |
-| `genetic_island_example.py` | Algorithme génétique réparti (modèle des îles) |
-| `tetris_ai_example.py` | IA Tetris distribuée par algorithme génétique |
+| `pygame_example.py` | Synchronized square between two Pygame windows |
+| `pygame_hanoi.py` | Collaborative Tower of Hanoi |
+| `numpy_matplotlib_example.py` | NumPy data streaming with Matplotlib chart |
+| `pandas_example.py` | Collaborative Pandas spreadsheet |
+| `sklearn_live_training.py` | Live Scikit-Learn training visualization |
+| `federated_learning_example.py` | Distributed federated learning |
+| `genetic_island_example.py` | Distributed genetic algorithm (island model) |
+| `tetris_ai_example.py` | Distributed Tetris AI via genetic algorithm |
 
-Pour exécuter les exemples, installez les dépendances additionnelles :
+To run the examples, install the additional dependencies:
 
 ```bash
 pip install -r requirements_examples.txt
 ```
 
-Puis lancez un serveur et un ou plusieurs clients :
+Then launch a server and one or more clients:
 
 ```bash
 python examples/pygame_example.py server    # Terminal 1
 python examples/pygame_example.py           # Terminal 2
 ```
 
-## Licence
+## License
 
 MIT

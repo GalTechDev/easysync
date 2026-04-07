@@ -10,7 +10,7 @@ from easysync import SyncedObject, SyncServer, connect
 try:
     import numpy as np
 except ImportError:
-    print("Erreur : installez numpy (pip install numpy)")
+    print("Error: install numpy (pip install numpy)")
     sys.exit(1)
 
 
@@ -42,7 +42,7 @@ def main():
                 avg = np.mean(grads, axis=0)
                 new_w = brain.global_weights - lr * avg
                 brain.global_weights = new_w
-                print(f"Époque {brain.epoch} — m={new_w[0]:.3f}, c={new_w[1]:.3f}")
+                print(f"Epoch {brain.epoch} — m={new_w[0]:.3f}, c={new_w[1]:.3f}")
                 brain.client_gradients.clear()
                 brain.epoch += 1
             time.sleep(2)

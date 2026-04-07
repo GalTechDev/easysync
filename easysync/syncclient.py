@@ -5,7 +5,7 @@ import struct
 
 
 class SyncClient:
-    """Client TCP qui se connecte à un SyncServer pour synchroniser des objets."""
+    """TCP client that connects to a SyncServer to synchronize objects."""
 
     def __init__(self, host="localhost", port=5000, auth_payload=None):
         self.host = host
@@ -23,21 +23,21 @@ class SyncClient:
             self._send_packet({"type": "auth", "payload": self.auth_payload})
             resp = self._recv_packet()
             if not resp:
-                print(f"[EasySync] Connexion perdue pendant l'authentification")
+                print("[EasySync] Connection lost during authentication")
                 return
 
             if resp.get("type") == "auth_reject":
-                print(f"[EasySync] Authentification refusée par le serveur")
+                print("[EasySync] Authentication rejected by server")
                 return
 
             self.connected = True
-            print(f"[EasySync] Connecté à {self.host}:{self.port}")
+            print(f"[EasySync] Connected to {self.host}:{self.port}")
             self._send_packet({"type": "request_sync"})
 
             t = threading.Thread(target=self.receive_loop, daemon=True)
             t.start()
         except Exception as e:
-            print(f"[EasySync] Échec de connexion : {e}")
+            print(f"[EasySync] Connection failed: {e}")
 
     def _send_packet(self, data):
         if self.client_socket:
@@ -74,7 +74,7 @@ class SyncClient:
                 "value": value,
             })
         except Exception as e:
-            print(f"[EasySync] Erreur d'envoi : {e}")
+            print(f"[EasySync] Send error: {e}")
 
     def register_callback(self, object_id, callback):
         self.callbacks[object_id] = callback
@@ -84,7 +84,7 @@ class SyncClient:
             try:
                 message = self._recv_packet()
                 if message is None:
-                    print("[EasySync] Déconnexion du serveur")
+                    print("[EasySync] Disconnected from server")
                     self.connected = False
                     break
 
@@ -98,6 +98,6 @@ class SyncClient:
                         self.on_sync_request_callback()
 
             except Exception as e:
-                print(f"[EasySync] Erreur réseau : {e}")
+                print(f"[EasySync] Network error: {e}")
                 self.connected = False
                 break

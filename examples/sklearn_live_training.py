@@ -12,7 +12,7 @@ try:
     from sklearn.linear_model import SGDClassifier
     from sklearn.datasets import make_classification
 except ImportError:
-    print("Erreur : installez scikit-learn, matplotlib et numpy")
+    print("Error: install scikit-learn, matplotlib and numpy")
     sys.exit(1)
 
 
@@ -45,7 +45,7 @@ def main():
             state.weights = model.coef_.copy()
             state.bias = model.intercept_.copy()
             state.epoch += 1
-            print(f"Époque {state.epoch}")
+            print(f"Epoch {state.epoch}")
             time.sleep(0.5)
     else:
         plt.ion()
@@ -57,7 +57,7 @@ def main():
 
         while True:
             if state.epoch > 0:
-                ax.set_title(f"Frontière de décision — Époque : {state.epoch}")
+                ax.set_title(f"Decision boundary — Epoch: {state.epoch}")
                 w = state.weights[0]
                 b = state.bias[0]
                 if w[1] != 0:

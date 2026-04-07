@@ -4,11 +4,10 @@ import struct
 
 
 class SyncServer:
-    """Serveur de synchronisation asynchrone basé sur asyncio.
+    """Async TCP server that relays state updates between all connected clients.
 
-    Remplace SyncServer pour les environnements à forte charge
-    où le threading bloquant devient un goulot d'étranglement.
-    Le protocole réseau est identique : SyncClient fonctionne tel quel.
+    Uses asyncio.start_server for non-blocking connection handling.
+    Wire protocol is identical to the legacy threaded version.
     """
 
     def __init__(self, host="0.0.0.0", port=5000):
@@ -53,10 +52,9 @@ class SyncServer:
 
     async def _handle_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         addr = writer.get_extra_info("peername")
-        print(f"[EasySync] Nouvelle connexion : {addr}")
+        print(f"[EasySync] New connection: {addr}")
 
         try:
-            # Authentification
             message = await self._recv_packet(reader)
             if not message:
                 return
@@ -74,7 +72,6 @@ class SyncServer:
 
             self.clients.append(writer)
 
-            # Boucle de réception
             while True:
                 message = await self._recv_packet(reader)
                 if not message:
@@ -84,9 +81,9 @@ class SyncServer:
         except (asyncio.IncompleteReadError, ConnectionError, OSError):
             pass
         except Exception as e:
-            print(f"[EasySync] Erreur client {addr} : {e}")
+            print(f"[EasySync] Client error {addr}: {e}")
         finally:
-            print(f"[EasySync] Déconnexion : {addr}")
+            print(f"[EasySync] Disconnected: {addr}")
             if writer in self.clients:
                 self.clients.remove(writer)
             writer.close()
@@ -95,12 +92,12 @@ class SyncServer:
         self._server = await asyncio.start_server(
             self._handle_client, self.host, self.port
         )
-        print(f"[EasySync] Serveur async démarré sur {self.host}:{self.port}")
+        print(f"[EasySync] Server started on {self.host}:{self.port}")
         async with self._server:
             await self._server.serve_forever()
 
     def start_thread(self):
-        """Lance le serveur async dans un thread dédié avec sa propre boucle."""
+        """Run the async server in a dedicated thread with its own event loop."""
         import threading
 
         def _run():

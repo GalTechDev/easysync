@@ -9,7 +9,7 @@ from easysync import SyncedObject, SyncServer, connect
 try:
     import pandas as pd
 except ImportError:
-    print("Erreur : installez pandas (pip install pandas)")
+    print("Error: install pandas (pip install pandas)")
     sys.exit(1)
 
 
@@ -27,10 +27,10 @@ def main():
     class Spreadsheet:
         def __init__(self):
             self.df = pd.DataFrame({
-                "Employé": ["Alice", "Bob", "Charlie"],
-                "Département": ["Ventes", "Tech", "Tech"],
-                "Salaire": [3500, 4200, 4100],
-                "Validé": [False, False, False],
+                "Employee": ["Alice", "Bob", "Charlie"],
+                "Department": ["Sales", "Tech", "Tech"],
+                "Salary": [3500, 4200, 4100],
+                "Approved": [False, False, False],
             })
 
     sheet = Spreadsheet()
@@ -39,15 +39,15 @@ def main():
     if is_server:
         while True:
             try:
-                cmd = input("\nIndex de l'employé à valider (0/1/2, q=quitter) : ")
+                cmd = input("\nEmployee index to approve (0/1/2, q=quit): ")
                 if cmd.lower() == "q":
                     break
 
                 idx = int(cmd)
                 if idx in (0, 1, 2):
                     tmp = sheet.df.copy()
-                    tmp.loc[idx, "Validé"] = True
-                    tmp.loc[idx, "Salaire"] += 100
+                    tmp.loc[idx, "Approved"] = True
+                    tmp.loc[idx, "Salary"] += 100
                     sheet.df = tmp
                     print(sheet.df)
             except ValueError:
@@ -57,7 +57,7 @@ def main():
         while True:
             current = sheet.df.to_string()
             if current != last_str:
-                print(f"\n>>> Mise à jour reçue :\n{current}")
+                print(f"\n>>> Update received:\n{current}")
                 last_str = current
             time.sleep(0.5)
 

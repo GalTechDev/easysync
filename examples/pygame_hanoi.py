@@ -9,7 +9,7 @@ from easysync import SyncedObject, SyncServer, connect
 try:
     import pygame
 except ImportError:
-    print("Erreur : pygame n'est pas installé (pip install pygame)")
+    print("Error: pygame is not installed (pip install pygame)")
     sys.exit(1)
 
 
@@ -33,7 +33,7 @@ def main():
     game = HanoiGame()
 
     pygame.init()
-    caption = "Tours de Hanoï - HÔTE" if is_server else "Tours de Hanoï - CLIENT"
+    caption = "Tower of Hanoi - HOST" if is_server else "Tower of Hanoi - CLIENT"
     pygame.display.set_caption(caption)
     screen = pygame.display.set_mode((800, 600))
     clock = pygame.time.Clock()

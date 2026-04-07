@@ -10,7 +10,7 @@ try:
     import numpy as np
     import matplotlib.pyplot as plt
 except ImportError:
-    print("Erreur : installez numpy et matplotlib (pip install numpy matplotlib)")
+    print("Error: install numpy and matplotlib (pip install numpy matplotlib)")
     sys.exit(1)
 
 
@@ -36,7 +36,7 @@ def main():
 
     plt.ion()
     fig, ax = plt.subplots(figsize=(8, 4))
-    ax.set_title("Données en temps réel (Numpy)")
+    ax.set_title("Real-time data (NumPy)")
     line, = ax.plot(data.x, data.y, color="red")
     ax.set_ylim(-2, 2)
 
@@ -50,7 +50,7 @@ def main():
 
         if not is_server:
             latency_ms = (time.time() - data.timestamp) * 1000
-            ax.set_title(f"Réception client — Latence : {latency_ms:.1f} ms")
+            ax.set_title(f"Client reception — Latency: {latency_ms:.1f} ms")
 
         plt.pause(0.05)
 

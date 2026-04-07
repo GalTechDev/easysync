@@ -81,7 +81,7 @@ class TetrisEngine:
         return cleared
 
 
-# IA
+# AI
 
 def get_board_metrics(board):
     holes, bumpiness = 0, 0
@@ -134,7 +134,7 @@ def random_weights():
     return [random.uniform(-1, 1) for _ in range(4)]
 
 
-# Réseau
+# Network
 
 def main():
     is_server = len(sys.argv) > 1 and sys.argv[1] == "server"
@@ -145,7 +145,7 @@ def main():
         time.sleep(0.5)
 
     client = connect("127.0.0.1", 5000)
-    worker_id = f"Robot_{uuid.uuid4().hex[:4]}" if not is_server else "Orchestrateur"
+    worker_id = f"Robot_{uuid.uuid4().hex[:4]}" if not is_server else "Orchestrator"
 
     @SyncedObject(client)
     class TetrisWorld:
@@ -158,7 +158,7 @@ def main():
 
     pygame.init()
     screen = pygame.display.set_mode((700, 650))
-    pygame.display.set_caption(f"Tetris IA — {worker_id}")
+    pygame.display.set_caption(f"Tetris AI — {worker_id}")
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("monospace", 18, bold=True)
     font_lg = pygame.font.SysFont("monospace", 32, bold=True)
@@ -191,14 +191,14 @@ def main():
                 last_exchange = time.time()
 
             screen.fill((30, 30, 45))
-            screen.blit(font_lg.render("SERVEUR CENTRAL TETRIS", True, (255, 200, 0)), (20, 20))
-            screen.blit(font.render(f"Iles connectées : {len(world.client_champions)}", True, (200, 200, 200)), (20, 80))
-            screen.blit(font.render(f"Époque mondiale : {world.epoch}", True, (255, 100, 255)), (20, 110))
+            screen.blit(font_lg.render("CENTRAL TETRIS SERVER", True, (255, 200, 0)), (20, 20))
+            screen.blit(font.render(f"Connected islands: {len(world.client_champions)}", True, (200, 200, 200)), (20, 80))
+            screen.blit(font.render(f"Global epoch: {world.epoch}", True, (255, 100, 255)), (20, 110))
 
             if world.world_champions:
                 for idx, champ in enumerate(world.world_champions):
                     w = champ[0]
-                    screen.blit(font.render(f"Top {idx + 1} | Record: {champ[1]} lignes", True, (100, 255, 100)), (20, 200 + idx * 80))
+                    screen.blit(font.render(f"Top {idx + 1} | Record: {champ[1]} lines", True, (100, 255, 100)), (20, 200 + idx * 80))
                     screen.blit(font.render(f"L={w[0]:.2f} H={w[1]:.2f} B={w[2]:.2f} A={w[3]:.2f}", True, (200, 200, 200)), (20, 225 + idx * 80))
 
             pygame.display.flip()
@@ -257,11 +257,11 @@ def main():
                     generation += 1
 
             screen.fill((20, 40, 25))
-            screen.blit(font_lg.render(f"ROBOT TETRIS : {worker_id}", True, (100, 255, 100)), (10, 10))
-            screen.blit(font.render(f"Génération locale : {generation}", True, (200, 200, 200)), (10, 60))
-            screen.blit(font.render(f"IA n°{ai_idx + 1}/{pop_size}", True, (200, 200, 200)), (10, 85))
-            screen.blit(font.render(f"Lignes (ce jeu) : {game.lines}", True, (255, 100, 100)), (10, 130))
-            screen.blit(font.render(f"Record absolu : {best_score}", True, (255, 200, 0)), (10, 160))
+            screen.blit(font_lg.render(f"TETRIS ROBOT: {worker_id}", True, (100, 255, 100)), (10, 10))
+            screen.blit(font.render(f"Local generation: {generation}", True, (200, 200, 200)), (10, 60))
+            screen.blit(font.render(f"AI #{ai_idx + 1}/{pop_size}", True, (200, 200, 200)), (10, 85))
+            screen.blit(font.render(f"Lines (this game): {game.lines}", True, (255, 100, 100)), (10, 130))
+            screen.blit(font.render(f"All-time best: {best_score}", True, (255, 200, 0)), (10, 160))
             draw_board(screen, game, 350, 40)
 
             pygame.display.flip()
