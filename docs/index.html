@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasySync | Real-time state synchronization for Python</title>
     <meta name="description" content="Universal real-time state synchronization for Python objects.">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <nav class="nav">
         <div class="nav-container">
@@ -17,7 +21,8 @@
             </div>
             <ul class="nav-links">
                 <li><a href="#features" data-en="Features" data-fr="Fonctionnalités">Features</a></li>
-                <li><a href="https://github.com/GalTechDev/easysync" target="_blank"><i class="ri-github-fill"></i> GitHub</a></li>
+                <li><a href="https://github.com/GalTechDev/easysync" target="_blank"><i class="ri-github-fill"></i>
+                        GitHub</a></li>
                 <li>
                     <button onclick="toggleLang()" id="lang-btn" class="lang-toggle">FR</button>
                 </li>
@@ -27,16 +32,25 @@
 
     <section class="hero container">
         <h1 class="hero-title">EasySync</h1>
-        <p class="hero-subtitle" data-en="Universal real-time state synchronization for Python. &lt;br&gt;Manipulate memory as if the network didn't exist." data-fr="Synchronisation universelle d'états en temps réel pour Python. &lt;br&gt;Manipulez la mémoire comme si le réseau n'existait pas.">Universal real-time state synchronization for Python. <br>Manipulate memory as if the network didn't exist.</p>
+        <p class="hero-subtitle"
+            data-en="Universal real-time state synchronization for Python. &lt;br&gt;Manipulate memory as if the network didn't exist."
+            data-fr="Synchronisation universelle d'états en temps réel pour Python. &lt;br&gt;Manipulez la mémoire comme si le réseau n'existait pas.">
+            Universal real-time state synchronization for Python. <br>Manipulate memory as if the network didn't exist.
+        </p>
         <div style="display: flex; gap: 1rem; justify-content: center;">
-            <button onclick="toggleQuickstart()" class="btn btn-primary"><i class="ri-terminal-line"></i> <span data-en="Quick Start" data-fr="Démarrage rapide">Quick Start</span></button>
-            <a href="https://github.com/GalTechDev/easysync" target="_blank" class="btn"><i class="ri-github-line"></i> <span data-en="Source Code" data-fr="Code source">Source Code</span></a>
+            <button onclick="toggleQuickstart()" class="btn btn-primary"><i class="ri-terminal-line"></i> <span
+                    data-en="Quick Start" data-fr="Démarrage rapide">Quick Start</span></button>
+            <a href="https://github.com/GalTechDev/easysync" target="_blank" class="btn"><i class="ri-github-line"></i>
+                <span data-en="Source Code" data-fr="Code source">Source Code</span></a>
         </div>
 
         <div id="quickstart-banner" style="display: none; justify-content: center; margin-top: 1.5rem;">
-            <div class="code-single" style="display: flex; align-items: center; gap: 1rem; padding: 0.6rem 1.2rem; text-align: left; font-size: 1rem; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+            <div class="code-single"
+                style="display: flex; align-items: center; gap: 1rem; padding: 0.6rem 1.2rem; text-align: left; font-size: 1rem; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
                 <span id="pip-text">pip install easysync</span>
-                <i class="ri-file-copy-line" style="cursor: pointer; color: var(--text-secondary); transition: 0.2s; font-size: 1.1rem;" onclick="copyPip()" id="copyIcon" title="Copy"></i>
+                <i class="ri-file-copy-line"
+                    style="cursor: pointer; color: var(--text-secondary); transition: 0.2s; font-size: 1.1rem;"
+                    onclick="copyPip()" id="copyIcon" title="Copy"></i>
             </div>
         </div>
 
@@ -48,7 +62,8 @@
                         <span style="color: var(--accent-green)">● Master Node</span>
                     </div>
                     <div class="terminal-body">
-                        <span class="kw">from</span> easysync <span class="kw">import</span> SyncedObject, SyncServer<br><br>
+                        <span class="kw">from</span> easysync <span class="kw">import</span> SyncedObject,
+                        SyncServer<br><br>
                         server = <span class="func">SyncServer</span>(port=<span class="num">5000</span>)<br>
                         server.<span class="func">start_thread</span>()<br><br>
                         <span class="kw">@SyncedObject</span>(server)<br>
@@ -56,10 +71,12 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;points = <span class="num">0</span><br>
                         &nbsp;&nbsp;&nbsp;&nbsp;users = []<br><br>
                         state = <span class="func">State</span>()<br>
-                        <span class="comment" data-en="# Variables below are network-bound" data-fr="# Les variables ci-dessous sont liées au réseau"># Variables below are network-bound</span><br><br>
+                        <span class="comment" data-en="# Variables below are network-bound"
+                            data-fr="# Les variables ci-dessous sont liées au réseau"># Variables below are
+                            network-bound</span><br><br>
                         state.points = <span class="live-var" id="hostStats">0</span><br>
                         state.users = <span class="live-var" id="hostUsers">[]</span><br><br>
-                        
+
                         <button class="action-btn" onclick="triggerHostUpdate()">
                             > state.points += <span class="num">10</span>
                         </button>
@@ -70,34 +87,49 @@
                 </div>
             </div>
 
-            <button class="btn btn-secondary" style="margin: 1rem 0; font-size: 0.9rem;" onclick="addClientNode()"><i class="ri-add-line"></i> Node</button>
+            <button class="btn btn-secondary" style="margin: 1rem 0; font-size: 0.9rem;" onclick="addClientNode()"><i
+                    class="ri-add-line"></i> Node</button>
 
             <div class="sandbox-clients-container" id="clients-wrapper"></div>
         </div>
     </section>
 
     <section class="container" id="features">
-        <h2 style="text-align: center; margin-bottom: 3rem;" data-en="Why EasySync?" data-fr="Pourquoi EasySync ?">Why EasySync?</h2>
+        <h2 style="text-align: center; margin-bottom: 3rem;" data-en="Why EasySync?" data-fr="Pourquoi EasySync ?">Why
+            EasySync?</h2>
         <div class="grid-2">
             <div class="card">
                 <div class="card-icon"><i class="ri-magic-line"></i></div>
-                <h3 data-en="Universal Transparent Proxy" data-fr="Proxy Universel Transparent">Universal Transparent Proxy</h3>
-                <p data-en="Forget about sockets. EasySync wraps your variables without modifying application logic through pure Python metadata handling (__getattribute__)." data-fr="Oubliez les sockets. EasySync enveloppe vos variables sans modifier la logique applicative via une gestion pure des métadonnées Python (__getattribute__).">Forget about sockets. EasySync wraps your variables without modifying application logic through pure Python metadata handling (__getattribute__).</p>
+                <h3 data-en="Universal Transparent Proxy" data-fr="Proxy Universel Transparent">Universal Transparent
+                    Proxy</h3>
+                <p data-en="Forget about sockets. EasySync wraps your variables without modifying application logic through pure Python metadata handling (__getattribute__)."
+                    data-fr="Oubliez les sockets. EasySync enveloppe vos variables sans modifier la logique applicative via une gestion pure des métadonnées Python (__getattribute__).">
+                    Forget about sockets. EasySync wraps your variables without modifying application logic through pure
+                    Python metadata handling (__getattribute__).</p>
             </div>
             <div class="card">
                 <div class="card-icon"><i class="ri-flashlight-line"></i></div>
                 <h3 data-en="Binary Performance" data-fr="Performances Binaires">Binary Performance</h3>
-                <p data-en="No JSON text overhead. EasySync serializes via Pickle and frames data in raw bytes for extremely fast network synchronization." data-fr="Aucun overhead JSON textuel. EasySync sérialise via Pickle et structure ses trames en octets purs pour une synchronisation réseau extrêmement rapide.">No JSON text overhead. EasySync serializes via Pickle and frames data in raw bytes for extremely fast network synchronization.</p>
+                <p data-en="No JSON text overhead. EasySync serializes via Pickle and frames data in raw bytes for extremely fast network synchronization."
+                    data-fr="Aucun overhead JSON textuel. EasySync sérialise via Pickle et structure ses trames en octets purs pour une synchronisation réseau extrêmement rapide.">
+                    No JSON text overhead. EasySync serializes via Pickle and frames data in raw bytes for extremely
+                    fast network synchronization.</p>
             </div>
             <div class="card">
                 <div class="card-icon"><i class="ri-bar-chart-box-line"></i></div>
                 <h3 data-en="Built for Data Science" data-fr="Taillé pour la Data Science">Built for Data Science</h3>
-                <p data-en="Optimized handling of C-level memory for direct copy-and-reassign of heavy NumPy, Pandas and Scikit-Learn structures." data-fr="Gestion optimisée des mémoires C pour la copie et la ré-assignation directe de structures lourdes NumPy, Pandas et Scikit-Learn.">Optimized handling of C-level memory for direct copy-and-reassign of heavy NumPy, Pandas and Scikit-Learn structures.</p>
+                <p data-en="Optimized handling of C-level memory for direct copy-and-reassign of heavy NumPy, Pandas and Scikit-Learn structures."
+                    data-fr="Gestion optimisée des mémoires C pour la copie et la ré-assignation directe de structures lourdes NumPy, Pandas et Scikit-Learn.">
+                    Optimized handling of C-level memory for direct copy-and-reassign of heavy NumPy, Pandas and
+                    Scikit-Learn structures.</p>
             </div>
             <div class="card">
                 <div class="card-icon"><i class="ri-cpu-line"></i></div>
                 <h3 data-en="Native Asyncio Server" data-fr="Serveur Asyncio Natif">Native Asyncio Server</h3>
-                <p data-en="The server is built on asyncio.start_server to handle thousands of simultaneous connections without CPU overhead or blocking threads." data-fr="Le serveur repose sur asyncio.start_server pour gérer des milliers de connexions simultanées sans surcharge CPU ni threading bloquant.">The server is built on asyncio.start_server to handle thousands of simultaneous connections without CPU overhead or blocking threads.</p>
+                <p data-en="The server is built on asyncio.start_server to handle thousands of simultaneous connections without CPU overhead or blocking threads."
+                    data-fr="Le serveur repose sur asyncio.start_server pour gérer des milliers de connexions simultanées sans surcharge CPU ni threading bloquant.">
+                    The server is built on asyncio.start_server to handle thousands of simultaneous connections without
+                    CPU overhead or blocking threads.</p>
             </div>
         </div>
     </section>
@@ -105,7 +137,8 @@
     <footer class="footer">
         <div class="container" style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
             <p class="footer-text">
-                <strong>EasySync</strong> — <span data-en="Free your Python scripts." data-fr="Libérez vos scripts Python.">Free your Python scripts.</span>
+                <strong>EasySync</strong> — <span data-en="Free your Python scripts."
+                    data-fr="Libérez vos scripts Python.">Free your Python scripts.</span>
             </p>
             <div class="footer-links" style="display: flex; gap: 1.5rem;">
                 <a href="https://github.com/GalTechDev/easysync" target="_blank">
@@ -114,7 +147,7 @@
                 <a href="https://github.com/GalTechDev/easysync/issues" target="_blank">
                     <i class="ri-bug-line"></i> Issues
                 </a>
-                <a href="https://pypi.org/project/easysync/" target="_blank">
+                <a href="https://pypi.org/project/py-easysync/" target="_blank">
                     <i class="ri-box-3-line"></i> PyPi
                 </a>
             </div>
@@ -175,7 +208,7 @@
             setTimeout(() => {
                 dot.style.opacity = '0';
                 setTimeout(() => dot.remove(), 200);
-                if(callback) callback();
+                if (callback) callback();
             }, 400);
         }
 
@@ -244,7 +277,7 @@
                 h.innerText = points;
                 playUpdatedAnim(h);
                 document.querySelectorAll('.sandbox-client').forEach(other => {
-                    if(other.id !== `client-terminal-${id}`) {
+                    if (other.id !== `client-terminal-${id}`) {
                         shootPacket(hostTerm, other, () => {
                             const s = other.querySelector('.client-stats');
                             s.innerText = points;
@@ -266,7 +299,7 @@
                 h.innerText = text;
                 playUpdatedAnim(h);
                 document.querySelectorAll('.sandbox-client').forEach(other => {
-                    if(other.id !== `client-terminal-${id}`) {
+                    if (other.id !== `client-terminal-${id}`) {
                         shootPacket(hostTerm, other, () => {
                             const u = other.querySelector('.client-users');
                             u.innerText = text;
@@ -280,4 +313,5 @@
         addClientNode();
     </script>
 </body>
+
 </html>
