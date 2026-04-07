@@ -1,0 +1,2 @@
+# EasySync n'a aucune dépendance externe pour fonctionner.
+# Ce fichier est vide volontairement.

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasySync | Librairie de synchronisation d'état pour Python</title>
+    <meta name="description" content="Synchronisation universelle d'états asynchrones pour objets Python Python en temps réel.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="ri-instance-line" style="color: var(--cloud-primary)"></i> EasySync
+            </div>
+            <ul class="nav-links">
+                <li><a href="#features">Fonctionnalités</a></li>
+                <li><a href="https://github.com/GalTechDev/easysync" target="_blank"><i class="ri-github-fill"></i> GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero container">
+        <h1 class="hero-title">EasySync</h1>
+        <p class="hero-subtitle">Synchronisation universelle d'états asynchrones pour Python. <br>Manipulez la mémoire comme si le réseau n'existait pas.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button onclick="toggleQuickstart()" class="btn btn-primary"><i class="ri-terminal-line"></i> Démarrage rapide</button>
+            <a href="https://github.com/GalTechDev/easysync" target="_blank" class="btn"><i class="ri-github-line"></i> Code source</a>
+        </div>
+
+        <div id="quickstart-banner" style="display: none; justify-content: center; margin-top: 1.5rem;">
+            <div class="code-single" style="display: flex; align-items: center; gap: 1rem; padding: 0.6rem 1.2rem; text-align: left; font-size: 1rem; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+                <span id="pip-text">pip install easysync</span>
+                <i class="ri-file-copy-line" style="cursor: pointer; color: var(--text-secondary); transition: 0.2s; font-size: 1.1rem;" onclick="copyPip()" id="copyIcon" title="Copier la commande"></i>
+            </div>
+        </div>
+
+        <div class="sandbox-container">
+            <!-- HOST TERMINAL -->
+            <div class="sandbox-node">
+                <div class="terminal" id="host-terminal">
+                    <div class="terminal-header">
+                        <span>serveur.py</span>
+                        <span style="color: var(--accent-green)">● Master Node</span>
+                    </div>
+                    <div class="terminal-body">
+                        <span class="kw">from</span> easysync <span class="kw">import</span> SyncedObject, SyncServer<br><br>
+                        server = <span class="func">SyncServer</span>(port=<span class="num">5000</span>)<br>
+                        server.<span class="func">start_thread</span>()<br><br>
+                        <span class="kw">@SyncedObject</span>(server)<br>
+                        <span class="kw">class</span> State:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;points = <span class="num">0</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;users = []<br><br>
+                        state = <span class="func">State</span>()<br>
+                        <span class="comment"># Les variables ci-dessous sont liées au réseau</span><br><br>
+                        state.points = <span class="live-var" id="hostStats">0</span><br>
+                        state.users = <span class="live-var" id="hostUsers">[]</span><br><br>
+                        
+                        <button class="action-btn" onclick="triggerHostUpdate()">
+                            > state.points += <span class="num">10</span>
+                        </button>
+                        <button class="action-btn" onclick="triggerHostListUpdate()">
+                            > state.users.<span class="func">append</span>(<span class="str">"Alice"</span>)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" style="margin: 1rem 0; font-size: 0.9rem;" onclick="addClientNode()"><i class="ri-add-line"></i> Node</button>
+
+            <!-- MULTIPLE CLIENTS GRID -->
+            <div class="sandbox-clients-container" id="clients-wrapper">
+                <!-- Clients DOM Injected Here via JS -->
+            </div>
+        </div>
+    </section>
+
+    <section class="container" id="features">
+        <h2 style="text-align: center; margin-bottom: 3rem;">Pourquoi EasySync ?</h2>
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-icon"><i class="ri-magic-line"></i></div>
+                <h3>Proxy Universel Translucide</h3>
+                <p>Oubliez les sockets. EasySync enveloppe vos variables sans modifier la logique applicative via une gestion pure des métadonnées Python (_getattribute_).</p>
+            </div>
+            <div class="card">
+                <div class="card-icon"><i class="ri-flashlight-line"></i></div>
+                <h3>Performances Binaires (Latence < 20ms)</h3>
+                <p>Aucun overhead JSON textuel. EasySync sérialise via Pickle et structure ses trames en octets purs pour garantir une synchronisation réseau extrêmement rapide.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon"><i class="ri-bar-chart-box-line"></i></div>
+                <h3>Taillé pour la Data Science</h3>
+                <p>Gestion optimisée des mémoires C Pures pour autoriser la copie et la ré-assignation directe de structures lourdes de Numpy Pandas et Scikit-Learn.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon"><i class="ri-cpu-line"></i></div>
+                <h3>Serveur Asyncio Natif</h3>
+                <p>Le serveur repose sur asyncio.start_server pour gérer des milliers de connexions simultanées sans surcharge CPU ni threading bloquant.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container" style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+            <p class="footer-text">
+                <strong>EasySync</strong> — Libérez vos scripts Python.
+            </p>
+            <div class="footer-links" style="display: flex; gap: 1.5rem;">
+                <a href="https://github.com/GalTechDev/easysync" target="_blank">
+                    <i class="ri-github-fill"></i> GitHub
+                </a>
+                <a href="https://github.com/GalTechDev/easysync/issues" target="_blank">
+                    <i class="ri-bug-line"></i> Issues
+                </a>
+                <a href="https://pypi.org/project/easysync/" target="_blank">
+                    <i class="ri-box-3-line"></i> PyPi
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleQuickstart() {
+            var banner = document.getElementById("quickstart-banner");
+            banner.style.display = (banner.style.display === "none") ? "flex" : "none";
+        }
+
+        function copyPip() {
+            navigator.clipboard.writeText("pip install easysync");
+            const icon = document.getElementById('copyIcon');
+            icon.className = 'ri-check-line';
+            icon.style.color = 'var(--accent-green)';
+            setTimeout(() => {
+                icon.className = 'ri-file-copy-line';
+                icon.style.color = 'var(--text-secondary)';
+            }, 2000);
+        }
+
+        // ---- Scalability Network Sandbox Logic ----
+        let currentUserList = [];
+        let points = 0;
+        let clientIdCounter = 0;
+
+        // Visual Packet Shooter (Absolute Position)
+        function shootPacket(srcEl, destEl, callback) {
+            const srcRect = srcEl.getBoundingClientRect();
+            const destRect = destEl.getBoundingClientRect();
+
+            const dot = document.createElement('div');
+            dot.className = 'packet';
+            dot.style.position = 'fixed';
+            
+            // Start AT Center of Source
+            dot.style.top = (srcRect.top + srcRect.height / 2 - 5) + 'px';
+            dot.style.left = (srcRect.left + srcRect.width / 2 - 5) + 'px';
+            dot.style.opacity = '1';
+            
+            document.body.appendChild(dot);
+
+            // Force reflow
+            void dot.offsetWidth;
+            
+            // Move TO Center of Dest
+            dot.style.top = (destRect.top + destRect.height / 2 - 5) + 'px';
+            dot.style.left = (destRect.left + destRect.width / 2 - 5) + 'px';
+
+            setTimeout(() => {
+                dot.style.opacity = '0';
+                setTimeout(() => dot.remove(), 200);
+                if(callback) callback();
+            }, 400); // sync with CSS transition duration
+        }
+
+        // Add dynamically a Client DOM
+        function addClientNode() {
+            clientIdCounter++;
+            const id = clientIdCounter;
+            const html = `
+            <div class="terminal sandbox-client" id="client-terminal-${id}">
+                <div class="terminal-header">
+                    <span>client_${id}.py</span>
+                    <span style="color: var(--cloud-primary)">● Connected</span>
+                </div>
+                <div class="terminal-body">
+                    state.points = <span class="live-var client-stats">${points}</span><br>
+                    state.users = <span class="live-var client-users">[${currentUserList.join(", ")}]</span><br><br>
+                    <button class="action-btn" onclick="triggerClientUpdate(${id})">
+                        > state.points += <span class="num">5</span>
+                    </button>
+                    <button class="action-btn" onclick="triggerClientListUpdate(${id})">
+                        > state.users.<span class="func">append</span>(<span class="str">"Bob"</span>)
+                    </button>
+                </div>
+            </div>`;
+            const wrapper = document.getElementById('clients-wrapper');
+            wrapper.insertAdjacentHTML('beforeend', html);
+        }
+
+        function playUpdatedAnim(domElement) {
+            domElement.classList.add('updated');
+            setTimeout(() => domElement.classList.remove('updated'), 300);
+        }
+
+        function triggerHostUpdate() {
+            points += 10;
+            const hStats = document.getElementById('hostStats');
+            hStats.innerText = points;
+            
+            const hostTerm = document.getElementById('host-terminal');
+            const clients = document.querySelectorAll('.sandbox-client');
+            
+            clients.forEach(client => {
+                shootPacket(hostTerm, client, () => {
+                    const cStats = client.querySelector('.client-stats');
+                    cStats.innerText = points;
+                    playUpdatedAnim(cStats);
+                });
+            });
+        }
+
+        function triggerHostListUpdate() {
+            currentUserList.push("'Alice'");
+            const text = "[" + currentUserList.join(", ") + "]";
+            document.getElementById('hostUsers').innerText = text;
+            
+            const hostTerm = document.getElementById('host-terminal');
+            const clients = document.querySelectorAll('.sandbox-client');
+            
+            clients.forEach(client => {
+                shootPacket(hostTerm, client, () => {
+                    const cUsers = client.querySelector('.client-users');
+                    cUsers.innerText = text;
+                    playUpdatedAnim(cUsers);
+                });
+            });
+        }
+
+        function triggerClientUpdate(id) {
+            points += 5;
+            const clientTerm = document.getElementById(`client-terminal-${id}`);
+            clientTerm.querySelector('.client-stats').innerText = points;
+            
+            const hostTerm = document.getElementById('host-terminal');
+            
+            // Client to Host
+            shootPacket(clientTerm, hostTerm, () => {
+                const hStats = document.getElementById('hostStats');
+                hStats.innerText = points;
+                playUpdatedAnim(hStats);
+                
+                // Host broadcast to OTHER clients
+                const allClients = document.querySelectorAll('.sandbox-client');
+                allClients.forEach(other => {
+                    if(other.id !== `client-terminal-${id}`) {
+                        shootPacket(hostTerm, other, () => {
+                            const oStats = other.querySelector('.client-stats');
+                            oStats.innerText = points;
+                            playUpdatedAnim(oStats);
+                        });
+                    }
+                });
+            });
+        }
+
+        function triggerClientListUpdate(id) {
+            currentUserList.push("'Bob'");
+            const text = "[" + currentUserList.join(", ") + "]";
+            const clientTerm = document.getElementById(`client-terminal-${id}`);
+            clientTerm.querySelector('.client-users').innerText = text;
+            
+            const hostTerm = document.getElementById('host-terminal');
+            
+            // Client to Host
+            shootPacket(clientTerm, hostTerm, () => {
+                const hUsers = document.getElementById('hostUsers');
+                hUsers.innerText = text;
+                playUpdatedAnim(hUsers);
+                
+                // Host broadcast to OTHER clients
+                const allClients = document.querySelectorAll('.sandbox-client');
+                allClients.forEach(other => {
+                    if(other.id !== `client-terminal-${id}`) {
+                        shootPacket(hostTerm, other, () => {
+                            const oUsers = other.querySelector('.client-users');
+                            oUsers.innerText = text;
+                            playUpdatedAnim(oUsers);
+                        });
+                    }
+                });
+            });
+        }
+
+        // Initialize with one client on load
+        addClientNode();
+    </script>
+</body>
+</html>

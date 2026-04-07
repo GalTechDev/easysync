@@ -1,0 +1,10 @@
+from easysync.syncedobject import SyncedObject, SyncedVar, SyncedProxy, connect, get_client
+from easysync.syncserver import SyncServer
+from easysync.syncclient import SyncClient
+
+__version__ = "0.1.0"
+__all__ = [
+    "SyncedObject", "SyncedVar", "SyncedProxy",
+    "SyncServer", "SyncClient",
+    "connect", "get_client",
+]
