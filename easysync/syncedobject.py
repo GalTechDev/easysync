@@ -79,12 +79,20 @@ class SyncedProxy:
 
 def _deep_wrap(value, callback):
     """Recursively wraps an object in a SyncedProxy.
-    Immutable types and C-extensions (numpy, pandas) are excluded."""
+    Immutable types and codec-excluded types are not wrapped."""
     import numbers
+    from easysync.codecs import get_excluded_types, find_codec
     if value is None or isinstance(value, (numbers.Number, str, bool, tuple, bytes)):
         return value
-    if type(value).__name__ in ("ndarray", "DataFrame", "Series"):
+    if type(value).__name__ in get_excluded_types():
         return value
+    # Check registered codecs — if a codec handles this type and
+    # has deep_proxy=False, don't wrap it
+    result = find_codec(value)
+    if result:
+        _, c = result
+        if not c.deep_proxy:
+            return value
     if isinstance(value, SyncedProxy):
         object.__setattr__(value, "_callback", callback)
         return value
@@ -149,10 +157,17 @@ def _handle_sync_request():
 
 # ---------- Public API ----------
 
-def connect(host="localhost", port=5000):
+def connect(host="localhost", port=5000, auth_payload=None, auto_reconnect=True, auto_resync=True, sync_new_client=True):
     """Connect to a remote SyncServer and return the client instance."""
     global _default_client
-    _default_client = SyncClient(host=host, port=port)
+    _default_client = SyncClient(
+        host=host, 
+        port=port, 
+        auth_payload=auth_payload,
+        auto_reconnect=auto_reconnect,
+        auto_resync=auto_resync,
+        sync_new_client=sync_new_client
+    )
     _default_client.on_sync_request_callback = _handle_sync_request
     _default_client.connect()
     return _default_client
@@ -163,8 +178,13 @@ def get_client():
     return _default_client
 
 
-def SyncedObject(client=None):
-    """Class decorator: synchronizes public attributes over the network."""
+def SyncedObject(client=None, transport="tcp"):
+    """Class decorator: synchronizes public attributes over the network.
+
+    Args:
+        client: SyncClient instance to use. Defaults to the global client.
+        transport: "tcp" (reliable, default) or "udp" (low-latency, lossy).
+    """
     def decorator(cls):
         _object_id = cls.__qualname__
         original_init = cls.__init__ if hasattr(cls, "__init__") else None
@@ -173,15 +193,20 @@ def SyncedObject(client=None):
             resolved_client = _sync_client or client or _default_client
             object.__setattr__(self, "_sync_client", resolved_client)
             object.__setattr__(self, "_sync_object_id", _object_id)
+            object.__setattr__(self, "_sync_transport", transport)
             object.__setattr__(self, "_sync_updating", False)
+
+            object.__setattr__(self, "_sync_updating", True)
+            try:
+                if original_init:
+                    original_init(self, *args, **kwargs)
+            finally:
+                object.__setattr__(self, "_sync_updating", False)
 
             if resolved_client:
                 resolved_client.register_callback(
                     _object_id, lambda msg, obj=self: _apply_update(obj, msg)
                 )
-
-            if original_init:
-                original_init(self, *args, **kwargs)
 
             _master_synced_objects.add(self)
 
@@ -199,9 +224,10 @@ def SyncedObject(client=None):
                 try:
                     c = object.__getattribute__(self, "_sync_client")
                     oid = object.__getattribute__(self, "_sync_object_id")
+                    tp = object.__getattribute__(self, "_sync_transport")
                     if c:
                         unproxied = _unproxy(object.__getattribute__(self, name))
-                        c.send_update(oid, name, unproxied)
+                        c.send_update(oid, name, unproxied, transport=tp)
                 except AttributeError:
                     pass
 

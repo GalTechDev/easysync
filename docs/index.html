@@ -17,7 +17,7 @@
     <nav class="nav">
         <div class="nav-container">
             <div class="nav-logo">
-                <i class="ri-instance-line" style="color: var(--cloud-primary)"></i> EasySync
+                <i class="ri-instance-line" style="color: var(--cloud-primary)"></i> EasySync <span class="badge-v">v0.1.1</span>
             </div>
             <ul class="nav-links">
                 <li><a href="#features" data-en="Features" data-fr="Fonctionnalités">Features</a></li>
@@ -33,9 +33,9 @@
     <section class="hero container">
         <h1 class="hero-title">EasySync</h1>
         <p class="hero-subtitle"
-            data-en="Universal real-time state synchronization for Python. &lt;br&gt;Manipulate memory as if the network didn't exist."
-            data-fr="Synchronisation universelle d'états en temps réel pour Python. &lt;br&gt;Manipulez la mémoire comme si le réseau n'existait pas.">
-            Universal real-time state synchronization for Python. <br>Manipulate memory as if the network didn't exist.
+            data-en="Universal real-time state synchronization for Python. &lt;br&gt;Now with TCP/UDP Hybrid & Delta Sync Engine."
+            data-fr="Synchronisation universelle d'états en temps réel pour Python. &lt;br&gt;Maintenant avec Transport Hybride TCP/UDP & Delta Sync.">
+            Universal real-time state synchronization for Python. <br>Now with TCP/UDP Hybrid & Delta Sync Engine.
         </p>
         <div style="display: flex; gap: 1rem; justify-content: center;">
             <button onclick="toggleQuickstart()" class="btn btn-primary"><i class="ri-terminal-line"></i> <span
@@ -99,37 +99,32 @@
             EasySync?</h2>
         <div class="grid-2">
             <div class="card">
-                <div class="card-icon"><i class="ri-magic-line"></i></div>
-                <h3 data-en="Universal Transparent Proxy" data-fr="Proxy Universel Transparent">Universal Transparent
-                    Proxy</h3>
-                <p data-en="Forget about sockets. EasySync wraps your variables without modifying application logic through pure Python metadata handling (__getattribute__)."
-                    data-fr="Oubliez les sockets. EasySync enveloppe vos variables sans modifier la logique applicative via une gestion pure des métadonnées Python (__getattribute__).">
-                    Forget about sockets. EasySync wraps your variables without modifying application logic through pure
-                    Python metadata handling (__getattribute__).</p>
+                <div class="card-icon"><i class="ri-pulse-line" style="color: var(--accent-green)"></i></div>
+                <h3 data-en="Hybrid TCP/UDP Transport" data-fr="Transport Hybride TCP/UDP">Hybrid TCP/UDP Transport</h3>
+                <p data-en="Use UDP for low-latency streaming and TCP for critical state. Choose your transport per attribute for maximum efficiency."
+                    data-fr="Utilisez l'UDP pour le streaming faible latence et le TCP pour les états critiques. Choisissez votre transport par attribut.">
+                    Use UDP for low-latency streaming and TCP for critical state. Choose your transport per attribute for maximum efficiency.</p>
             </div>
             <div class="card">
-                <div class="card-icon"><i class="ri-flashlight-line"></i></div>
-                <h3 data-en="Binary Performance" data-fr="Performances Binaires">Binary Performance</h3>
-                <p data-en="No JSON text overhead. EasySync serializes via Pickle and frames data in raw bytes for extremely fast network synchronization."
-                    data-fr="Aucun overhead JSON textuel. EasySync sérialise via Pickle et structure ses trames en octets purs pour une synchronisation réseau extrêmement rapide.">
-                    No JSON text overhead. EasySync serializes via Pickle and frames data in raw bytes for extremely
-                    fast network synchronization.</p>
+                <div class="card-icon"><i class="ri-line-chart-line" style="color: var(--accent-purple)"></i></div>
+                <h3 data-en="Delta Sync (XOR+Zlib)" data-fr="Delta Sync (XOR+Zlib)">Delta Sync (XOR+Zlib)</h3>
+                <p data-en="Differentials for heavy objects (NumPy, Torch). Only send what changed, saving up to 99% of bandwidth for large datasets."
+                    data-fr="Différentiels pour objets lourds (NumPy, Torch). N'envoyez que ce qui a changé, économisant jusqu'à 99% de bande passante.">
+                    Differentials for heavy objects (NumPy, Torch). Only send what changed, saving up to 99% of bandwidth for large datasets.</p>
             </div>
             <div class="card">
-                <div class="card-icon"><i class="ri-bar-chart-box-line"></i></div>
-                <h3 data-en="Built for Data Science" data-fr="Taillé pour la Data Science">Built for Data Science</h3>
-                <p data-en="Optimized handling of C-level memory for direct copy-and-reassign of heavy NumPy, Pandas and Scikit-Learn structures."
-                    data-fr="Gestion optimisée des mémoires C pour la copie et la ré-assignation directe de structures lourdes NumPy, Pandas et Scikit-Learn.">
-                    Optimized handling of C-level memory for direct copy-and-reassign of heavy NumPy, Pandas and
-                    Scikit-Learn structures.</p>
+                <div class="card-icon"><i class="ri-dashboard-3-line" style="color: var(--accent-orange)"></i></div>
+                <h3 data-en="Live Telemetry Overlay" data-fr="Superposition de Télémétrie">Live Telemetry Overlay</h3>
+                <p data-en="Track latency, bandwidth, and packet counts in real-time. Built-in ping/pong system for precise network health checks."
+                    data-fr="Suivez la latence, le débit et le nombre de paquets en temps réel. Système ping/pong intégré pour des diagnostics précis.">
+                    Track latency, bandwidth, and packet counts in real-time. Built-in ping/pong system for precise network health checks.</p>
             </div>
             <div class="card">
-                <div class="card-icon"><i class="ri-cpu-line"></i></div>
-                <h3 data-en="Native Asyncio Server" data-fr="Serveur Asyncio Natif">Native Asyncio Server</h3>
-                <p data-en="The server is built on asyncio.start_server to handle thousands of simultaneous connections without CPU overhead or blocking threads."
-                    data-fr="Le serveur repose sur asyncio.start_server pour gérer des milliers de connexions simultanées sans surcharge CPU ni threading bloquant.">
-                    The server is built on asyncio.start_server to handle thousands of simultaneous connections without
-                    CPU overhead or blocking threads.</p>
+                <div class="card-icon"><i class="ri-computer-line"></i></div>
+                <h3 data-en="Example: Remote Desktop" data-fr="Exemple : Remote Desktop">Example: Remote Desktop</h3>
+                <p data-en="New demo showcasing 720p 30FPS screen streaming and input relay using only EasySync's high-speed decorators."
+                    data-fr="Nouvelle démo montrant le streaming 720p 30FPS et le contrôle distant via les décorateurs ultra-rapides d'EasySync.">
+                    New demo showcasing 720p 30FPS screen streaming and input relay using only EasySync's high-speed decorators.</p>
             </div>
         </div>
     </section>
@@ -223,7 +218,8 @@
                 </div>
                 <div class="terminal-body">
                     state.points = <span class="live-var client-stats">${points}</span><br>
-                    state.users = <span class="live-var client-users">[${currentUserList.join(", ")}]</span><br><br>
+                    state.users = <span class="live-var client-users">[${currentUserList.join(", ")}]</span><br>
+                    <div class="bandwidth-stats" id="bw-${id}">TCP Full Sync: 8.4 KB/s</div><br>
                     <button class="action-btn" onclick="triggerClientUpdate(${id})">
                         > state.points += <span class="num">5</span>
                     </button>
@@ -293,6 +289,9 @@
             const text = "[" + currentUserList.join(", ") + "]";
             const ct = document.getElementById(`client-terminal-${id}`);
             ct.querySelector('.client-users').innerText = text;
+            const bw = document.getElementById(`bw-${id}`);
+            bw.innerHTML = 'UDP Delta Sync: <span style="color: #fff">0.12 KB/s</span> (98% Saving)';
+            
             const hostTerm = document.getElementById('host-terminal');
             shootPacket(ct, hostTerm, () => {
                 const h = document.getElementById('hostUsers');
@@ -303,6 +302,8 @@
                         shootPacket(hostTerm, other, () => {
                             const u = other.querySelector('.client-users');
                             u.innerText = text;
+                            const obw = other.querySelector('.bandwidth-stats');
+                            obw.innerHTML = 'UDP Delta Sync: <span style="color: #fff">0.12 KB/s</span> (98% Saving)';
                             playUpdatedAnim(u);
                         });
                     }
