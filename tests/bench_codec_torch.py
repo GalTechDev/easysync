@@ -114,13 +114,14 @@ def run_benchmark():
         (16_000_000,),        # ~64 MB
         (32_000_000,),        # ~128 MB
     ]
-    REPEATS = 10
+    REPEATS = 3
 
-    tensors = [torch.randn(*s) for s in SHAPES]
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    tensors = [torch.randn(*s).to(device) for s in SHAPES]
 
     print("=" * 70)
     print("  EasySync Benchmark: Torch Codec vs Default Pickle")
-    print(f"  PyTorch {torch.__version__} | CPU")
+    print(f"  PyTorch {torch.__version__} | {device.upper()}")
     print("=" * 70)
     print()
 

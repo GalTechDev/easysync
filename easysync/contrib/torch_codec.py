@@ -11,10 +11,11 @@ for large tensors (GPU tensors are moved to CPU automatically).
 
 import io
 import easysync
+from easysync.codecs import Codec
 
 
 @easysync.codec("torch.Tensor")
-class TorchTensorCodec:
+class TorchTensorCodec(Codec):
     """Codec for PyTorch tensors using native torch serialization."""
 
     deep_proxy = False
