@@ -114,7 +114,7 @@ def run_benchmark():
         (16_000_000,),        # ~64 MB
         (32_000_000,),        # ~128 MB
     ]
-    REPEATS = 3
+    REPEATS = 10
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tensors = [torch.randn(*s).to(device) for s in SHAPES]
