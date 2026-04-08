@@ -10,7 +10,7 @@ Manipulate your Python objects as if the network didn't exist. EasySync intercep
 ## Installation
 
 ```bash
-pip install easysync
+pip install py-easysync
 ```
 
 ## Quick Start
