@@ -20,6 +20,7 @@
                 <i class="ri-instance-line" style="color: var(--cloud-primary)"></i> EasySync <span class="badge-v">v0.1.1</span>
             </div>
             <ul class="nav-links">
+                <li><a href="wiki.html" data-en="Documentation" data-fr="Documentation">Documentation</a></li>
                 <li><a href="#features" data-en="Features" data-fr="Fonctionnalités">Features</a></li>
                 <li><a href="https://github.com/GalTechDev/easysync" target="_blank"><i class="ri-github-fill"></i>
                         GitHub</a></li>
@@ -47,7 +48,7 @@
         <div id="quickstart-banner" style="display: none; justify-content: center; margin-top: 1.5rem;">
             <div class="code-single"
                 style="display: flex; align-items: center; gap: 1rem; padding: 0.6rem 1.2rem; text-align: left; font-size: 1rem; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-                <span id="pip-text">pip install easysync</span>
+                <span id="pip-text">pip install py-easysync</span>
                 <i class="ri-file-copy-line"
                     style="cursor: pointer; color: var(--text-secondary); transition: 0.2s; font-size: 1.1rem;"
                     onclick="copyPip()" id="copyIcon" title="Copy"></i>
@@ -113,6 +114,13 @@
                     Differentials for heavy objects (NumPy, Torch). Only send what changed, saving up to 99% of bandwidth for large datasets.</p>
             </div>
             <div class="card">
+                <div class="card-icon"><i class="ri-cpu-line" style="color: var(--cloud-primary)"></i></div>
+                <h3 data-en="Zero-Socket IPC (EasySHM)" data-fr="IPC Zéro-Socket (EasySHM)">Zero-Socket IPC (EasySHM)</h3>
+                <p data-en="Unmatched local performance using Shared Memory. Communicate between local processes at RAM speeds (< 0.05ms latency)."
+                    data-fr="Performances locales inégalées via Mémoire Partagée. Communiquez entre processus locaux à la vitesse de la RAM (latence < 0.05ms).">
+                    Unmatched local performance using Shared Memory. Communicate between local processes at RAM speeds (&lt; 0.05ms latency).</p>
+            </div>
+            <div class="card">
                 <div class="card-icon"><i class="ri-dashboard-3-line" style="color: var(--accent-orange)"></i></div>
                 <h3 data-en="Live Telemetry Overlay" data-fr="Superposition de Télémétrie">Live Telemetry Overlay</h3>
                 <p data-en="Track latency, bandwidth, and packet counts in real-time. Built-in ping/pong system for precise network health checks."
@@ -136,6 +144,9 @@
                     data-fr="Libérez vos scripts Python.">Free your Python scripts.</span>
             </p>
             <div class="footer-links" style="display: flex; gap: 1.5rem;">
+                <a href="wiki.html">
+                    <i class="ri-book-read-line"></i> Wiki
+                </a>
                 <a href="https://github.com/GalTechDev/easysync" target="_blank">
                     <i class="ri-github-fill"></i> GitHub
                 </a>

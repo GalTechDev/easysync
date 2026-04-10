@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiki & Documentation | EasySync</title>
+    <meta name="description" content="Detailed documentation for EasySync: SHM, Hybrid Transport, Codecs and more.">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo" style="text-decoration: none;">
+                <i class="ri-instance-line" style="color: var(--cloud-primary)"></i> EasySync <span class="badge-v">Wiki</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="ri-home-4-line"></i> <span data-en="Home" data-fr="Accueil">Home</span></a></li>
+                <li><a href="https://github.com/GalTechDev/easysync" target="_blank"><i class="ri-github-fill"></i> GitHub</a></li>
+                <li>
+                    <button onclick="toggleLang()" id="lang-btn" class="lang-toggle">FR</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container wiki-layout">
+        <aside class="wiki-sidebar">
+            <div class="wiki-sidebar-title" data-en="Getting Started" data-fr="Démarrage">Getting Started</div>
+            <ul>
+                <li><a href="#intro" class="wiki-sidebar-link active" data-en="Introduction" data-fr="Introduction">Introduction</a></li>
+                <li><a href="#install" class="wiki-sidebar-link" data-en="Installation" data-fr="Installation">Installation</a></li>
+                <li><a href="#quickstart" class="wiki-sidebar-link" data-en="First Synced Object" data-fr="Premier objet">First Synced Object</a></li>
+            </ul>
+
+            <div class="wiki-sidebar-title" data-en="Advanced Engines" data-fr="Moteurs Avancés">Advanced Engines</div>
+            <ul>
+                <li><a href="#shm" class="wiki-sidebar-link" data-en="EasySHM (No-Socket)" data-fr="EasySHM (No-Socket)">EasySHM (No-Socket)</a></li>
+                <li><a href="#hybrid" class="wiki-sidebar-link" data-en="Hybrid TCP/UDP" data-fr="Hybride TCP/UDP">Hybrid TCP/UDP</a></li>
+                <li><a href="#codecs" class="wiki-sidebar-link" data-en="Codecs & Delta Sync" data-fr="Codecs & Delta Sync">Codecs & Delta Sync</a></li>
+            </ul>
+
+            <div class="wiki-sidebar-title" data-en="Reference" data-fr="Référence">Reference</div>
+            <ul>
+                <li><a href="#api" class="wiki-sidebar-link" data-en="API Reference" data-fr="Référence API">API Reference</a></li>
+                <li><a href="#telemetry" class="wiki-sidebar-link" data-en="Telemetry & Stats" data-fr="Télémétrie & Stats">Telemetry & Stats</a></li>
+            </ul>
+        </aside>
+
+        <main class="wiki-content">
+            <!-- INTRODUCTION -->
+            <section id="intro" class="wiki-section">
+                <h2 data-en="Introduction" data-fr="Introduction">Introduction</h2>
+                <p data-en="EasySync is a universal state synchronization library for Python. It allows you to share object states across different scripts, processes, or machines with minimal boilerplate. It is designed for low latency and high scalability."
+                   data-fr="EasySync est une bibliothèque universelle de synchronisation d'état pour Python. Elle vous permet de partager l'état de vos objets entre différents scripts, processus ou machines avec un minimum de code. Elle est conçue pour la faible latence et la haute scalabilité.">
+                    EasySync is a universal state synchronization library for Python. It allows you to share object states across different scripts, processes, or machines with minimal boilerplate.
+                </p>
+                <div class="doc-alert">
+                    <i class="ri-information-line"></i> 
+                    <span data-en="EasySync works by wrapping your class attributes in proxies that automatically transmit changes when a value is updated."
+                          data-fr="EasySync fonctionne en enveloppant les attributs de votre classe dans des proxys qui transmettent automatiquement les changements lors d'une mise à jour.">
+                        EasySync works by wrapping your class attributes in proxies that automatically transmit changes when a value is updated.
+                    </span>
+                </div>
+            </section>
+
+            <!-- INSTALLATION -->
+            <section id="install" class="wiki-section">
+                <h2 data-en="Installation" data-fr="Installation">Installation</h2>
+                <div class="code-single">pip install py-easysync</div>
+                <h3 data-en="Optional Dependencies" data-fr="Dépendances Optionnelles">Optional Dependencies</h3>
+                <p data-en="For high-performance data (NumPy/Torch), install the extra requirements:"
+                   data-fr="Pour les données haute performance (NumPy/Torch), installez les options supplémentaires :">
+                    For high-performance data (NumPy/Torch), install the extra requirements:
+                </p>
+                <div class="code-single">pip install py-easysync[heavy]</div>
+            </section>
+
+            <!-- EASYSHM -->
+            <section id="shm" class="wiki-section">
+                <h2 data-en="EasySHM (No-Socket IPC)" data-fr="Moteur EasySHM (IPC)">EasySHM (No-Socket IPC)</h2>
+                <p data-en="EasySHM is the ultimate engine for local synchronization. It uses **Shared Memory (mmap)** instead of network sockets to pass data between processes on the same machine."
+                   data-fr="EasySHM est le moteur ultime pour la synchronisation locale. Il utilise la **Mémoire Partagée (mmap)** au lieu des sockets réseau pour transmettre les données entre processus sur la même machine.">
+                    EasySHM is the ultimate engine for local synchronization. It uses Shared Memory instead of network sockets to pass data between processes.
+                </p>
+                
+                <h3 data-en="Why use SHM?" data-fr="Pourquoi utiliser le SHM ?">Why use SHM?</h3>
+                <table class="perf-table">
+                    <thead>
+                        <tr>
+                            <th data-en="Feature" data-fr="Fonctionnalité">Feature</th>
+                            <th>TCP Network</th>
+                            <th>EasySHM</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-en="Latency" data-fr="Latence">Latency</td>
+                            <td>~1.0ms - 10ms</td>
+                            <td class="perf-val">&lt; 0.05ms</td>
+                        </tr>
+                        <tr>
+                            <td data-en="Throughput" data-fr="Débit">Throughput</td>
+                            <td>Limited by Nic (1Gbps)</td>
+                            <td class="perf-val">Unlimited (RAM Speed)</td>
+                        </tr>
+                        <tr>
+                            <td data-en="Overhead" data-fr="Surcharge CPU">Overhead</td>
+                            <td>TCP/IP Stack</td>
+                            <td class="perf-val">Zero (Direct RAM)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 data-en="Example Usage" data-fr="Exemple d'Utilisation">Example Usage</h3>
+                <div class="terminal">
+                    <div class="terminal-body">
+                        <span class="kw">from</span> easysync <span class="kw">import</span> shm_connect, SyncedObject<br><br>
+                        <span class="comment"># Connect directly to local RAM bus</span><br>
+                        client = <span class="func">shm_connect</span>(<span class="str">"my_cluster"</span>)<br><br>
+                        <span class="kw">@SyncedObject</span>(client)<br>
+                        <span class="kw">class</span> State:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">def</span> <span class="func">__init__</span>(self):<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.score = <span class="num">0</span>
+                    </div>
+                </div>
+                <div class="doc-alert doc-alert-tip">
+                    <i class="ri-lightbulb-line"></i>
+                    <span data-en="SHM mode requires no server. The memory segment itself acts as the communication bus."
+                          data-fr="Le mode SHM ne nécessite aucun serveur. Le segment mémoire lui-même agit comme le bus de communication.">
+                        SHM mode requires no server. The memory segment itself acts as the communication bus.
+                    </span>
+                </div>
+            </section>
+
+            <!-- HYBRID TRANSPORT -->
+            <section id="hybrid" class="wiki-section">
+                <h2 data-en="Hybrid TCP/UDP" data-fr="Transport Hybride">Hybrid TCP/UDP</h2>
+                <p data-en="EasySync allows you to choose the transport protocol for each decorated object or attribute."
+                   data-fr="EasySync vous permet de choisir le protocole de transport pour chaque objet ou attribut décoré.">
+                    EasySync allows you to choose the transport protocol for each decorated object or attribute.
+                </p>
+                <ul>
+                    <li><strong>TCP</strong>: Guaranteed delivery. Best for scores, inventory, and configuration.</li>
+                    <li><strong>UDP</strong>: Fast, but may lose packets. Best for positions, rotations, and streams.</li>
+                </ul>
+                <h3 data-en="Per-attribute configuration" data-fr="Configuration par attribut">Per-attribute configuration</h3>
+                <div class="terminal">
+                    <div class="terminal-body">
+                        <span class="kw">@SyncedObject</span>(transport=<span class="str">"udp"</span>)<br>
+                        <span class="kw">class</span> Player:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;pos_x = <span class="num">0</span> <span class="comment"># This will use UDP</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;inventory = [] <span class="comment"># You should use TCP for this!</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CODECS & DELTA SYNC -->
+            <section id="codecs" class="wiki-section">
+                <h2 data-en="Codecs & Delta Sync" data-fr="Codecs & Delta Sync">Codecs & Delta Sync</h2>
+                <p data-en="The Delta Sync engine calculates differentials between states to save bandwidth. This is specifically powerful for NumPy arrays."
+                   data-fr="Le moteur Delta Sync calcule les différentiels entre les états pour économiser la bande passante. C'est particulièrement puissant pour les tableaux NumPy.">
+                    The Delta Sync engine calculates differentials between states to save bandwidth. This is specifically powerful for NumPy arrays.
+                </p>
+                <div class="delta-flow">
+                    <div class="delta-box">Old State (10MB)</div>
+                    <i class="ri-arrow-right-line"></i>
+                    <div class="delta-box" style="border-style: solid; border-color: var(--accent-green);">XOR Delta (100KB)</div>
+                    <i class="ri-arrow-right-line"></i>
+                    <div class="delta-box">New State (10MB)</div>
+                </div>
+                <div class="doc-alert doc-alert-tip">
+                    <i class="ri-shield-check-line"></i>
+                    <span data-en="With Delta Sync, synchronizing a full screen image can drop from 5MB/update to only 150KB/update."
+                          data-fr="Avec Delta Sync, la synchronisation d'une image plein écran peut passer de 5 Mo à seulement 150 Ko par mise à jour.">
+                        With Delta Sync, synchronizing a full screen image can drop from 5MB/update to only 150KB/update.
+                    </span>
+                </div>
+            </section>
+
+            <!-- API REFERENCE -->
+            <section id="api" class="wiki-section">
+                <h2 data-en="API Reference" data-fr="Référence API">API Reference</h2>
+                
+                <h3 data-en="Decorator: @SyncedObject" data-fr="Décorateur : @SyncedObject">Decorator: @SyncedObject</h3>
+                <p data-en="The core decorator of EasySync. Apply it to any class to make it network-aware." data-fr="Le décorateur principal d'EasySync. Appliquez-le à n'importe quelle classe pour la rendre compatible réseau.">The core decorator of EasySync.</p>
+                <ul>
+                    <li><code>client</code>: Instance contextuelle (SyncClient ou SHMSyncClient).</li>
+                    <li><code>transport</code>: <code>"tcp"</code> ou <code>"udp"</code>.</li>
+                </ul>
+
+                <h3 data-en="Functions: connect() & shm_connect()" data-fr="Fonctions : connect() & shm_connect()">Functions: connect() & shm_connect()</h3>
+                <div class="terminal">
+                    <div class="terminal-body">
+                        <span class="comment"># Network mode</span><br>
+                        client = <span class="func">connect</span>(host=<span class="str">"127.0.0.1"</span>, port=<span class="num">5000</span>)<br><br>
+                        <span class="comment"># Ultra-fast local mode</span><br>
+                        client = <span class="func">shm_connect</span>(cluster_name=<span class="str">"my_app"</span>)
+                    </div>
+                </div>
+            </section>
+
+            <!-- TELEMETRY -->
+            <section id="telemetry" class="wiki-section">
+                <h2 data-en="Telemetry & Stats" data-fr="Télémétrie & Stats">Telemetry & Stats</h2>
+                <p data-en="Every client tracks real-time statistics in its <code>stats</code> dictionary." data-fr="Chaque client suit des statistiques en temps réel dans son dictionnaire <code>stats</code>.">
+                    Every client tracks real-time statistics in its stats dictionary.
+                </p>
+                <div class="terminal">
+                    <div class="terminal-body">
+                        print(client.stats[<span class="str">"latency_ms"</span>])<br>
+                        print(client.stats[<span class="str">"bytes_sent"</span>])<br>
+                        print(client.stats[<span class="str">"packets_recv"</span>])
+                    </div>
+                </div>
+                <div class="doc-alert">
+                    <i class="ri-dashboard-line"></i>
+                    <span data-en="Telemetry is zero-overhead in SHM mode, as there is no network stack to monitor." data-fr="La télémétrie n'a aucun surcoût en mode SHM, car il n'y a pas de pile réseau à surveiller.">
+                        Telemetry is zero-overhead in SHM mode.
+                    </span>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">EasySync Documentation &bull; v0.1.1 &bull; GalTechDev</p>
+        </div>
+    </footer>
+
+    <script>
+        // ---- i18n ----
+        let currentLang = "en";
+
+        function toggleLang() {
+            currentLang = currentLang === "en" ? "fr" : "en";
+            document.getElementById("lang-btn").textContent = currentLang === "en" ? "FR" : "EN";
+            document.querySelectorAll("[data-en]").forEach(el => {
+                const text = el.getAttribute("data-" + currentLang);
+                if (text) el.innerHTML = text;
+            });
+        }
+
+        // ---- Active Link Tracker ----
+        window.addEventListener('scroll', () => {
+            let fromTop = window.scrollY + 120;
+            document.querySelectorAll('.wiki-sidebar-link').forEach(link => {
+                let section = document.querySelector(link.hash);
+                if (
+                    section.offsetTop <= fromTop &&
+                    section.offsetTop + section.offsetHeight > fromTop
+                ) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

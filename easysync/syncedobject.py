@@ -178,6 +178,29 @@ def get_client():
     return _default_client
 
 
+def shm_connect(cluster_name: str = "default"):
+    """Connect via shared memory (zero-socket, zero-server).
+
+    All processes using the same cluster_name will share state through
+    RAM-mapped memory, with kernel-level signaling for instant updates.
+
+    No SyncServer is needed. No network ports are opened.
+
+    Args:
+        cluster_name: A unique name for the local cluster. All processes
+                      sharing this name will synchronize together.
+
+    Returns:
+        SHMSyncClient instance (compatible with SyncedObject decorator).
+    """
+    global _default_client
+    from easysync.shm_client import SHMSyncClient
+    _default_client = SHMSyncClient(cluster_name)
+    _default_client.on_sync_request_callback = _handle_sync_request
+    _default_client.connect()
+    return _default_client
+
+
 def SyncedObject(client=None, transport="tcp"):
     """Class decorator: synchronizes public attributes over the network.
 
