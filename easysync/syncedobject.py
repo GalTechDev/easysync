@@ -17,8 +17,9 @@ class SyncedProxy:
 
     def __getattribute__(self, name):
         if name in ("_target", "_callback", "_trigger", "__class__",
-                     "__array__", "__array_struct__", "__array_interface__"):
-            if name in ("__array__", "__array_struct__", "__array_interface__"):
+                     "__array__", "__array_struct__", "__array_interface__",
+                     "__cuda_array_interface__"):
+            if name in ("__array__", "__array_struct__", "__array_interface__", "__cuda_array_interface__"):
                 return getattr(object.__getattribute__(self, "_target"), name)
             return object.__getattribute__(self, name)
 

@@ -26,29 +26,48 @@ class SyncServer:
         self.auth_handler = func
         return func
 
+    def register_codec(self, name, codec_instance):
+        from easysync.codecs import register_codec
+        register_codec(name, codec_instance)
+
     # -------- TCP --------
 
-    async def _send_packet(self, writer: asyncio.StreamWriter, data: dict):
-        raw = pickle.dumps(data)
-        writer.write(struct.pack(">I", len(raw)) + raw)
+    async def _send_packet(self, writer: asyncio.StreamWriter, data: dict, payload: bytes | memoryview = None):
+        raw_meta = pickle.dumps(data)
+        # Header: total meta length
+        writer.write(struct.pack(">I", len(raw_meta)))
+        writer.write(raw_meta)
+        if payload:
+            writer.write(payload)
         await writer.drain()
 
-    async def _recv_packet(self, reader: asyncio.StreamReader) -> dict | None:
-        header = await reader.readexactly(4)
-        length = struct.unpack(">I", header)[0]
-        raw = await reader.readexactly(length)
-        return pickle.loads(raw)
+    async def _recv_packet(self, reader: asyncio.StreamReader) -> tuple[dict, bytes | None] | None:
+        try:
+            header = await reader.readexactly(4)
+            meta_length = struct.unpack(">I", header)[0]
+            raw_meta = await reader.readexactly(meta_length)
+            meta = pickle.loads(raw_meta)
+            
+            payload = None
+            if "_raw_size" in meta:
+                payload = await reader.readexactly(meta["_raw_size"])
+            
+            return meta, payload
+        except (asyncio.IncompleteReadError, ConnectionError, OSError):
+            return None
 
-    async def _broadcast(self, message: dict, sender: asyncio.StreamWriter = None):
-        raw = pickle.dumps(message)
-        frame = struct.pack(">I", len(raw)) + raw
+    async def _broadcast(self, message: dict, payload: bytes | memoryview = None, sender: asyncio.StreamWriter = None):
+        raw_meta = pickle.dumps(message)
+        frame_meta = struct.pack(">I", len(raw_meta)) + raw_meta
 
         dead = []
         for client in self.clients:
             if client is sender:
                 continue
             try:
-                client.write(frame)
+                client.write(frame_meta)
+                if payload:
+                    client.write(payload)
                 await client.drain()
             except (ConnectionError, OSError):
                 dead.append(client)
@@ -63,9 +82,10 @@ class SyncServer:
         print(f"[EasySync] New connection: {addr}")
 
         try:
-            message = await self._recv_packet(reader)
-            if not message:
+            res = await self._recv_packet(reader)
+            if not res:
                 return
+            message, payload = res
 
             if message.get("type") == "auth":
                 if self.auth_handler:
@@ -81,20 +101,22 @@ class SyncServer:
             else:
                 if self.auth_handler:
                     return
-                await self._broadcast(message, sender=writer)
+                await self._broadcast(message, payload=payload, sender=writer)
 
             self.clients.append(writer)
 
             while True:
-                message = await self._recv_packet(reader)
-                if not message:
+                res = await self._recv_packet(reader)
+                if not res:
                     break
+                
+                message, payload = res
                 
                 if message.get("type") == "ping":
                     await self._send_packet(writer, {"type": "pong"})
                     continue
 
-                await self._broadcast(message, sender=writer)
+                await self._broadcast(message, payload=payload, sender=writer)
 
         except (asyncio.IncompleteReadError, ConnectionError, OSError):
             pass

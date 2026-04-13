@@ -62,6 +62,7 @@ class SyncClient:
                     self.client_socket.settimeout(5.0)  # Timeout for connection
                     self.client_socket.connect((self.host, self.port))
                     self.client_socket.settimeout(None) # Remove timeout for blocking mode
+                    self.client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1) # Optimization for Zero-Copy payloads
 
                     # Open UDP socket
                     self._udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -70,12 +71,14 @@ class SyncClient:
                     self._server_udp_addr = (self.host, self.port + 1)
 
                     self._send_packet({"type": "auth", "payload": self.auth_payload, "udp_port": local_udp_port})
-                    resp = self._recv_packet()
+                    res = self._recv_packet()
                     
-                    if not resp:
+                    if not res:
                         print("[EasySync] Connection lost during authentication")
                         self.client_socket.close()
                         continue
+                        
+                    resp, _ = res
 
                     if resp.get("type") == "auth_reject":
                         print("[EasySync] Authentication rejected by server")
@@ -113,18 +116,37 @@ class SyncClient:
             time.sleep(2)
 
 
-    def _send_packet(self, data):
+    def _send_packet(self, data, payload: bytes | memoryview = None):
         if self.client_socket:
-            raw = pickle.dumps(data)
-            frame = struct.pack(">I", len(raw)) + raw
+            raw_meta = pickle.dumps(data)
+            # Header: total meta length
+            header_and_meta = struct.pack(">I", len(raw_meta)) + raw_meta
             try:
-                self.stats["bytes_sent"] += len(frame)
+                self.stats["bytes_sent"] += len(header_and_meta)
+                self.client_socket.sendall(header_and_meta)
+                if payload:
+                    self.stats["bytes_sent"] += len(payload)
+                    self.client_socket.sendall(payload)
                 self.stats["packets_sent"] += 1
-                self.client_socket.sendall(frame)
             except OSError:
                 pass
 
-    def _recv_n_bytes(self, n):
+    def _recv_n_bytes(self, n, out_buffer=None):
+        """Read exactly n bytes from the socket.
+        If out_buffer (bytearray/memoryview) is provided, read directly into it.
+        """
+        if out_buffer is not None:
+            view = out_buffer
+            pos = 0
+            while pos < n:
+                try:
+                    read_size = self.client_socket.recv_into(view[pos:], n - pos)
+                    if read_size == 0: return False
+                    self.stats["bytes_recv"] += read_size
+                    pos += read_size
+                except OSError: return False
+            return True
+
         buf = bytearray()
         while len(buf) < n:
             try:
@@ -141,11 +163,19 @@ class SyncClient:
         header = self._recv_n_bytes(4)
         if not header:
             return None
-        length = struct.unpack(">I", header)[0]
-        data = self._recv_n_bytes(length)
-        if not data:
+        meta_length = struct.unpack(">I", header)[0]
+        raw_meta = self._recv_n_bytes(meta_length)
+        if not raw_meta:
             return None
-        return pickle.loads(data)
+        meta = pickle.loads(raw_meta)
+        
+        payload = None
+        if "_raw_size" in meta:
+            # We don't read the payload here yet. 
+            # We defer it to _dispatch_message so we can potentially use recv_into.
+            pass
+            
+        return meta, payload
 
     def send_update(self, object_id, attr_name, value, transport="tcp"):
         if not self.connected:
@@ -157,6 +187,36 @@ class SyncClient:
                 "object_id": object_id,
                 "attr_name": attr_name,
             }
+            
+            # --- Zero-Copy Detection ---
+            # Checks if value is a raw-compatible buffer (SHM, NumPy, mmap)
+            is_raw = False
+            raw_payload = None
+            
+            # 1. Direct buffer protocol supporters
+            if isinstance(value, (bytes, bytearray, memoryview)):
+                is_raw = True
+                raw_payload = memoryview(value)
+            # 2. NumPy arrays (Zero-copy via memoryview)
+            elif type(value).__name__ == "ndarray" and hasattr(value, "data"):
+                is_raw = True
+                raw_payload = value.data # memoryview of array
+            # 3. EasySHM objects: check for ._data.buf (mmap)
+            elif hasattr(value, "_data") and hasattr(value._data, "buf"):
+                is_raw = True
+                raw_payload = memoryview(value._data.buf)
+            # 4. Direct mmap objects
+            elif hasattr(value, "read") and hasattr(value, "seek") and type(value).__name__ == "mmap":
+                is_raw = True
+                raw_payload = memoryview(value)
+            
+            if is_raw:
+                packet["_raw_size"] = len(raw_payload)
+                # Ensure we don't accidentally pickle the buffer source if it's unpicklable
+                # We only send the metadata header
+                self._send_packet(packet, payload=raw_payload)
+                return
+
             result = find_codec(value)
             if result:
                 codec_name, codec_inst = result
@@ -178,10 +238,31 @@ class SyncClient:
                                 self._send_packet(packet)
                             return
 
-                # Full encode (no delta or delta not worth it)
-                packet["value"] = codec_inst.encode(value)
+                # Full encode
+                encoded = codec_inst.encode(value)
                 packet["_codec"] = codec_name
                 self._delta_sent[cache_key] = value
+                
+                # --- Codec Raw Payload Support ---
+                # Codec can return (metadata, raw_source) to trigger zero-copy
+                if isinstance(encoded, tuple) and len(encoded) == 2:
+                    meta_val, raw_src = encoded
+                    packet["value"] = meta_val
+                    
+                    # Detect raw source
+                    raw_payload = None
+                    if isinstance(raw_src, (bytes, bytearray, memoryview)):
+                        raw_payload = memoryview(raw_src)
+                    elif hasattr(raw_src, "_data") and hasattr(raw_src._data, "buf"):
+                        raw_payload = memoryview(raw_src._data.buf)
+                    
+                    if raw_payload is not None:
+                        packet["_raw_size"] = len(raw_payload)
+                        self._send_packet(packet, payload=raw_payload)
+                        return
+                
+                # Standard codec result
+                packet["value"] = encoded
             else:
                 packet["value"] = value
 
@@ -220,7 +301,7 @@ class SyncClient:
                 self.stats["bytes_recv"] += len(data)
                 self.stats["packets_recv"] += 1
                 message = pickle.loads(data)
-                self._dispatch_message(message)
+                self._dispatch_message(message, None)
             except socket.timeout:
                 continue
             except Exception:
@@ -235,45 +316,59 @@ class SyncClient:
                 callback(msg)
             del self._unclaimed_updates[object_id]
 
-    def _dispatch_message(self, message):
+    def register_codec(self, name, codec_instance):
+        from easysync.codecs import register_codec
+        register_codec(name, codec_instance)
+
+    def _dispatch_message(self, message, payload, reader=None):
         """Shared logic for handling incoming messages (TCP or UDP)."""
         msg_type = message.get("type")
         if msg_type == "update":
+            oid = message.get("object_id")
+            attr = message.get("attr_name")
+            raw_size = message.get("_raw_size")
+            raw_payload = None
+            if raw_size is not None and reader:
+                # Value was sent as raw binary
+                raw_payload = bytearray(raw_size)
+                self._recv_n_bytes(raw_size, out_buffer=memoryview(raw_payload))
+
             # Decode codec-encoded values
             if "_codec" in message:
                 from easysync.codecs import get_codec
                 codec_name = message["_codec"]
                 c = get_codec(codec_name)
                 if c:
-                    oid = message.get("object_id", "")
-                    attr = message.get("attr_name", "")
                     cache_key = (oid, attr)
-
                     if message.get("_delta"):
-                        # Delta decode: apply delta to cached value
+                        # Delta decode
                         current = self._delta_received.get(cache_key)
                         if current is not None:
                             message["value"] = c.decode_delta(current, message["value"])
                         else:
-                            # No cached value — can't apply delta, skip
-                            message["value"] = c.decode(message["value"])
+                            message["value"] = c.decode(message["value"], raw_payload=raw_payload)
                     else:
-                        # Full decode
-                        message["value"] = c.decode(message["value"])
+                        # Full decode - Pass raw_payload if we have one
+                        message["value"] = c.decode(message["value"], raw_payload=raw_payload)
 
                     self._delta_received[cache_key] = message["value"]
+                else:
+                    # FALLBACK: If codec is missing but we have raw data, use raw data
+                    if raw_payload is not None:
+                        message["value"] = raw_payload
                 del message["_codec"]
                 if "_delta" in message:
                     del message["_delta"]
+            
+            elif raw_payload is not None:
+                message["value"] = raw_payload
 
-            oid = message.get("object_id")
             if oid:
                 if oid in self.callbacks:
                     self.callbacks[oid](message)
                 else:
-                    attr_name = message.get("attr_name")
-                    if attr_name:
-                        self._unclaimed_updates.setdefault(oid, {})[attr_name] = message
+                    if attr:
+                        self._unclaimed_updates.setdefault(oid, {})[attr] = message
         elif msg_type == "request_sync":
             if self.on_sync_request_callback:
                 self.on_sync_request_callback()
@@ -287,10 +382,13 @@ class SyncClient:
     def receive_loop(self):
         while self.connected:
             try:
-                message = self._recv_packet()
-                if message is None:
+                res = self._recv_packet()
+                if res is None:
                     raise ConnectionError("Server disconnected")
-                self._dispatch_message(message)
+                
+                message, payload = res
+                # We pass 'self' as the reader to allow deferred raw payload reading
+                self._dispatch_message(message, payload, reader=self)
 
             except Exception as e:
                 print(f"[EasySync] Disconnected from server: {e}")

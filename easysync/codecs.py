@@ -73,19 +73,24 @@ _registry: dict[str, Codec] = {}
 _default_excluded = {"ndarray", "DataFrame", "Series"}
 
 
-def register_codec(name: str, match, encode, decode, deep_proxy=False):
-    """Register a codec using simple functions.
+def register_codec(name: str, match_or_instance=None, encode=None, decode=None, deep_proxy=False):
+    """Register a codec.
 
     Args:
-        name: Unique identifier for this codec (e.g. "torch.Tensor").
-        match: Callable(obj) -> bool. Returns True if this codec handles obj.
-        encode: Callable(obj) -> bytes. Serializes the object.
-        decode: Callable(bytes) -> obj. Deserializes bytes back to the object.
-        deep_proxy: If False, objects handled by this codec will NOT be
-                    wrapped in a SyncedProxy.
+        name: Unique identifier for this codec.
+        match_or_instance: Either a callable match(obj) -> bool, or a Codec instance.
+        encode: (Optional) Callable(obj) -> bytes.
+        decode: (Optional) Callable(bytes) -> obj.
+        deep_proxy: If False, objects handled by this codec will NOT be proxy-wrapped.
     """
+    if isinstance(match_or_instance, Codec) or hasattr(match_or_instance, "match"):
+        instance = match_or_instance
+        instance.__codec_name__ = name
+        _registry[name] = instance
+        return instance
+    
     c = Codec()
-    c.match = match
+    c.match = match_or_instance
     c.encode = encode
     c.decode = decode
     c.deep_proxy = deep_proxy
