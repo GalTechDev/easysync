@@ -137,6 +137,20 @@ def _master_poller_loop():
 
 def _handle_sync_request():
     """Responds to a resync request from a newly connected client."""
+    # The newcomer has no delta base yet: send full values
+    clients = {id(v._client): v._client for v in _master_synced_vars if v._client}
+    for obj in list(_master_synced_objects):
+        try:
+            c = object.__getattribute__(obj, "_sync_client")
+            if c:
+                clients[id(c)] = c
+        except AttributeError:
+            pass
+    for c in clients.values():
+        delta = getattr(c, "_delta", None)
+        if delta is not None:
+            delta.forget_sent()
+
     for var in _master_synced_vars:
         if var._client:
             var._client.send_update(var.var_name, "value", var.last_val)
@@ -158,8 +172,13 @@ def _handle_sync_request():
 
 # ---------- Public API ----------
 
-def connect(host="localhost", port=5000, auth_payload=None, auto_reconnect=True, auto_resync=True, sync_new_client=True):
-    """Connect to a remote SyncServer and return the client instance."""
+def connect(host="localhost", port=5000, auth_payload=None, auto_reconnect=True, auto_resync=True,
+            sync_new_client=True, timeout=5.0):
+    """Connect to a remote SyncServer and return the client instance.
+
+    Waits up to `timeout` seconds for the connection so that updates made right
+    after connect() are not lost (0 = return immediately).
+    """
     global _default_client
     _default_client = SyncClient(
         host=host, 
@@ -170,7 +189,7 @@ def connect(host="localhost", port=5000, auth_payload=None, auto_reconnect=True,
         sync_new_client=sync_new_client
     )
     _default_client.on_sync_request_callback = _handle_sync_request
-    _default_client.connect()
+    _default_client.connect(timeout=timeout)
     return _default_client
 
 
@@ -179,7 +198,7 @@ def get_client():
     return _default_client
 
 
-def shm_connect(cluster_name: str = "default"):
+def shm_connect(cluster_name: str = "default", buffer_size: int = 16 * 1024 * 1024):
     """Connect via shared memory (zero-socket, zero-server).
 
     All processes using the same cluster_name will share state through
@@ -190,13 +209,15 @@ def shm_connect(cluster_name: str = "default"):
     Args:
         cluster_name: A unique name for the local cluster. All processes
                       sharing this name will synchronize together.
+        buffer_size:  Size of the shared message ring, set by the first process.
+                      A single update must fit in half of it.
 
     Returns:
         SHMSyncClient instance (compatible with SyncedObject decorator).
     """
     global _default_client
     from easysync.shm_client import SHMSyncClient
-    _default_client = SHMSyncClient(cluster_name)
+    _default_client = SHMSyncClient(cluster_name, buffer_size=buffer_size)
     _default_client.on_sync_request_callback = _handle_sync_request
     _default_client.connect()
     return _default_client
@@ -207,16 +228,23 @@ def SyncedObject(client=None, transport="tcp"):
 
     Args:
         client: SyncClient instance to use. Defaults to the global client.
-        transport: "tcp" (reliable, default) or "udp" (low-latency, lossy).
+        transport: "tcp" (reliable, default) or "udp" (lossy, unordered).
+
+    Each instance is identified by its class name and its creation order on
+    its client: the first instance is "ClassName", the next ones
+    "ClassName#2", "ClassName#3"... so the n-th instance created in one
+    process syncs with the n-th instance of the other processes. Pass
+    `_sync_id="..."` to the constructor to choose the identifier yourself.
     """
     def decorator(cls):
         _object_id = cls.__qualname__
         original_init = cls.__init__ if hasattr(cls, "__init__") else None
 
-        def new_init(self, *args, _sync_client=None, **kwargs):
+        def new_init(self, *args, _sync_client=None, _sync_id=None, **kwargs):
             resolved_client = _sync_client or client or _default_client
+            object_id = _sync_id or _next_object_id(resolved_client, _object_id)
             object.__setattr__(self, "_sync_client", resolved_client)
-            object.__setattr__(self, "_sync_object_id", _object_id)
+            object.__setattr__(self, "_sync_object_id", object_id)
             object.__setattr__(self, "_sync_transport", transport)
             object.__setattr__(self, "_sync_updating", False)
 
@@ -229,7 +257,7 @@ def SyncedObject(client=None, transport="tcp"):
 
             if resolved_client:
                 resolved_client.register_callback(
-                    _object_id, lambda msg, obj=self: _apply_update(obj, msg)
+                    object_id, lambda msg, obj=self: _apply_update(obj, msg)
                 )
 
             _master_synced_objects.add(self)
@@ -263,6 +291,21 @@ def SyncedObject(client=None, transport="tcp"):
         cls.__setattr__ = new_setattr
         return cls
     return decorator
+
+
+_instance_counts = weakref.WeakKeyDictionary()  # client -> {class name: instances created}
+_instance_lock = threading.Lock()
+
+
+def _next_object_id(client, base_id):
+    """"Name" for the first instance on a client, then "Name#2", "Name#3"..."""
+    if client is None:
+        return base_id
+    with _instance_lock:
+        counts = _instance_counts.setdefault(client, {})
+        n = counts.get(base_id, 0) + 1
+        counts[base_id] = n
+    return base_id if n == 1 else f"{base_id}#{n}"
 
 
 def _apply_update(obj, message):

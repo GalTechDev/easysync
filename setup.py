@@ -2,9 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name="py-easysync",
-    version="0.1.1",
+    version="0.2.0",
     author="GalTechDev",
-    description="Universal real-time state synchronization for Python (TCP/UDP + Delta Sync).",
+    description="Universal real-time state synchronization for Python.",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/GalTechDev/easysync",
@@ -16,6 +16,7 @@ setup(
     extras_require={
         "numpy": ["numpy"],
         "torch": ["torch"],
+        "shm": ["py-easyshm"],
         "remote": ["pyautogui", "mss", "pygame", "pillow", "opencv-python"],
     },
     classifiers=[

@@ -7,7 +7,7 @@ for any type without modifying the library source code.
 Usage:
     # Class-based registration
     @easysync.codec("torch.Tensor")
-    class TorchCodec:
+    class TorchCodec(easysync.codecs.Codec):
         def match(self, obj): ...
         def encode(self, obj): ...
         def decode(self, data): ...
@@ -21,7 +21,13 @@ Usage:
         decode=lambda data: np.frombuffer(data),
         deep_proxy=False,
     )
+
+encode() may return bytes, or a (metadata, buffer) tuple: the buffer is then
+sent as a raw zero-copy payload and decode() is called as
+decode(metadata, raw_payload=buffer).
 """
+
+import inspect
 
 
 class Codec:
@@ -57,6 +63,14 @@ class Codec:
         """Apply a delta to the current value to reconstruct the new value."""
         raise NotImplementedError
 
+    def snapshot(self, obj):
+        """Return an independent copy of obj, kept as the base for the next delta.
+
+        Codecs of mutable types must override it (e.g. ``obj.copy()``): keeping a
+        reference would make in-place changes invisible to encode_delta().
+        """
+        return obj
+
     def supports_delta(self) -> bool:
         """Returns True if this codec has a real delta implementation."""
         return hasattr(self, 'encode_delta') and hasattr(self, 'decode_delta') and \
@@ -72,23 +86,35 @@ _registry: dict[str, Codec] = {}
 # Default type names excluded from deep proxying (legacy behavior)
 _default_excluded = {"ndarray", "DataFrame", "Series"}
 
+# Built-in codecs imported on first use: {type module: (codec name, contrib module)}
+_LAZY_CODECS = {
+    "numpy": ("numpy.ndarray", "easysync.contrib.numpy_codec"),
+    "torch": ("torch.Tensor", "easysync.contrib.torch_codec"),
+}
 
-def register_codec(name: str, match_or_instance=None, encode=None, decode=None, deep_proxy=False):
+
+def register_codec(name: str, match_or_instance=None, encode=None, decode=None,
+                   deep_proxy=False, *, match=None):
     """Register a codec.
 
     Args:
         name: Unique identifier for this codec.
-        match_or_instance: Either a callable match(obj) -> bool, or a Codec instance.
+        match_or_instance: A Codec instance, or a callable match(obj) -> bool.
         encode: (Optional) Callable(obj) -> bytes.
         decode: (Optional) Callable(bytes) -> obj.
         deep_proxy: If False, objects handled by this codec will NOT be proxy-wrapped.
+        match: Keyword alias of match_or_instance for the functional form.
     """
+    if match_or_instance is None:
+        match_or_instance = match
     if isinstance(match_or_instance, Codec) or hasattr(match_or_instance, "match"):
         instance = match_or_instance
         instance.__codec_name__ = name
         _registry[name] = instance
         return instance
-    
+
+    if not callable(match_or_instance):
+        raise TypeError("register_codec() needs a Codec instance or a match callable")
     c = Codec()
     c.match = match_or_instance
     c.encode = encode
@@ -104,7 +130,7 @@ def codec(name: str):
 
     Usage:
         @easysync.codec("torch.Tensor")
-        class TorchCodec:
+        class TorchCodec(easysync.codecs.Codec):
             def match(self, obj): ...
             def encode(self, obj): ...
             def decode(self, data): ...
@@ -118,13 +144,25 @@ def codec(name: str):
     return decorator
 
 
+def _load_builtin(codec_name):
+    for name, module in _LAZY_CODECS.values():
+        if name == codec_name and name not in _registry:
+            try:
+                __import__(module)
+            except ImportError:
+                pass
+
+
 def find_codec(obj):
     """Find which codec handles the given object.
 
     Returns:
         (name, codec) tuple if found, None otherwise.
     """
-    for name, c in _registry.items():
+    lazy = _LAZY_CODECS.get(type(obj).__module__.split(".")[0])
+    if lazy and lazy[0] not in _registry:
+        _load_builtin(lazy[0])
+    for name, c in list(_registry.items()):
         try:
             if c.match(obj):
                 return (name, c)
@@ -139,7 +177,29 @@ def get_codec(name: str):
     Returns:
         Codec instance or None.
     """
+    if name not in _registry:
+        _load_builtin(name)
     return _registry.get(name)
+
+
+def decode_value(c, data, raw_payload=None):
+    """Call c.decode(), passing raw_payload only to codecs that accept it."""
+    if raw_payload is None:
+        return c.decode(data)
+    try:
+        params = inspect.signature(c.decode).parameters
+        accepts = "raw_payload" in params or any(p.kind is p.VAR_KEYWORD for p in params.values())
+    except (TypeError, ValueError):
+        accepts = True
+    if accepts:
+        return c.decode(data, raw_payload=raw_payload)
+    return c.decode(data, raw_payload)
+
+
+def snapshot(c, value):
+    """Independent copy of value used as a delta base (see Codec.snapshot)."""
+    snap = getattr(c, "snapshot", None)
+    return snap(value) if snap else value
 
 
 def get_excluded_types() -> set:

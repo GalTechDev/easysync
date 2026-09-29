@@ -4,7 +4,12 @@ import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+import easysync
 from easysync import SyncedObject, SyncServer, connect
+
+# A DataFrame is rebuilt from arbitrary pandas internals, which the default
+# (restricted) deserializer refuses. Only do this when every peer is trusted.
+easysync.trust_all_types()
 
 try:
     import pandas as pd

@@ -1,329 +1,423 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EasySync | Real-time state synchronization for Python</title>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>EASYSYNC | Real-time state synchronization for Python</title>
     <meta name="description" content="Universal real-time state synchronization for Python objects.">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="js/tailwind.config.js"></script>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
     <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body>
-    <nav class="nav">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <i class="ri-instance-line" style="color: var(--cloud-primary)"></i> EasySync <span class="badge-v">v0.1.1</span>
+<body
+    class="bg-background text-on-surface font-body-base antialiased flex h-screen overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+
+    <!-- Animated Cloud Canvas Background -->
+    <canvas id="cloud-bounce-canvas" class="fixed inset-0 w-full h-full -z-10 pointer-events-none opacity-50"></canvas>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-30 hidden transition-opacity duration-300 opacity-0"></div>
+
+    <!-- SideNavBar -->
+    <aside id="sidebar"
+        class="h-screen w-64 fixed left-0 top-0 flex flex-col bg-surface-bright border-r border-outline-variant z-40 transition-transform duration-300 -translate-x-full md:translate-x-0">
+        <div class="p-6 border-b border-outline-variant relative">
+            <button id="close-menu-btn" class="md:hidden absolute top-4 right-4 text-outline hover:text-primary">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <div class="flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined fill-icon text-primary">sync</span>
+                <h2 class="font-headline-md text-headline-md text-primary">EASYSYNC</h2>
             </div>
-            <ul class="nav-links">
-                <li><a href="wiki.html" data-en="Documentation" data-fr="Documentation">Documentation</a></li>
-                <li><a href="#features" data-en="Features" data-fr="Fonctionnalités">Features</a></li>
-                <li><a href="https://github.com/GalTechDev/easysync" target="_blank"><i class="ri-github-fill"></i>
-                        GitHub</a></li>
-                <li>
-                    <button onclick="toggleLang()" id="lang-btn" class="lang-toggle">FR</button>
-                </li>
-            </ul>
-        </div>
-    </nav>
-
-    <section class="hero container">
-        <h1 class="hero-title">EasySync</h1>
-        <p class="hero-subtitle"
-            data-en="Universal real-time state synchronization for Python. &lt;br&gt;Now with TCP/UDP Hybrid & Delta Sync Engine."
-            data-fr="Synchronisation universelle d'états en temps réel pour Python. &lt;br&gt;Maintenant avec Transport Hybride TCP/UDP & Delta Sync.">
-            Universal real-time state synchronization for Python. <br>Now with TCP/UDP Hybrid & Delta Sync Engine.
-        </p>
-        <div style="display: flex; gap: 1rem; justify-content: center;">
-            <button onclick="toggleQuickstart()" class="btn btn-primary"><i class="ri-terminal-line"></i> <span
-                    data-en="Quick Start" data-fr="Démarrage rapide">Quick Start</span></button>
-            <a href="https://github.com/GalTechDev/easysync" target="_blank" class="btn"><i class="ri-github-line"></i>
-                <span data-en="Source Code" data-fr="Code source">Source Code</span></a>
-        </div>
-
-        <div id="quickstart-banner" style="display: none; justify-content: center; margin-top: 1.5rem;">
-            <div class="code-single"
-                style="display: flex; align-items: center; gap: 1rem; padding: 0.6rem 1.2rem; text-align: left; font-size: 1rem; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-                <span id="pip-text">pip install py-easysync</span>
-                <i class="ri-file-copy-line"
-                    style="cursor: pointer; color: var(--text-secondary); transition: 0.2s; font-size: 1.1rem;"
-                    onclick="copyPip()" id="copyIcon" title="Copy"></i>
+            <div class="flex justify-center mt-3">
+                <span class="inline-block px-2 py-0.5 bg-[#eafdf0] text-[#006e0b] border border-[#a1e8af] font-label-caps text-[10px] uppercase">v0.2.0 · MIT</span>
             </div>
         </div>
 
-        <div class="sandbox-container">
-            <div class="sandbox-node">
-                <div class="terminal" id="host-terminal">
-                    <div class="terminal-header">
-                        <span>server.py</span>
-                        <span style="color: var(--accent-green)">● Master Node</span>
-                    </div>
-                    <div class="terminal-body">
-                        <span class="kw">from</span> easysync <span class="kw">import</span> SyncedObject,
-                        SyncServer<br><br>
-                        server = <span class="func">SyncServer</span>(port=<span class="num">5000</span>)<br>
-                        server.<span class="func">start_thread</span>()<br><br>
-                        <span class="kw">@SyncedObject</span>(server)<br>
-                        <span class="kw">class</span> State:<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;points = <span class="num">0</span><br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;users = []<br><br>
-                        state = <span class="func">State</span>()<br>
-                        <span class="comment" data-en="# Variables below are network-bound"
-                            data-fr="# Les variables ci-dessous sont liées au réseau"># Variables below are
-                            network-bound</span><br><br>
-                        state.points = <span class="live-var" id="hostStats">0</span><br>
-                        state.users = <span class="live-var" id="hostUsers">[]</span><br><br>
+        <nav class="flex-1 py-4 flex flex-col gap-1 overflow-y-auto">
+            <a href="index.html"
+                class="flex items-center gap-4 px-6 py-4 transition-all bg-primary-container text-on-primary-container border-r-4 border-primary">
+                <span class="material-symbols-outlined fill-icon">home</span>
+                <span class="font-label-caps text-label-caps uppercase" data-en="HOME" data-fr="ACCUEIL">HOME</span>
+            </a>
+            <a href="wiki.html"
+                class="flex items-center gap-4 px-6 py-4 text-on-surface-variant hover:bg-surface-container transition-all">
+                <span class="material-symbols-outlined">menu_book</span>
+                <span class="font-label-caps text-label-caps uppercase">DOCUMENTATION</span>
+            </a>
+            <a href="https://github.com/GalTechDev/easysync" target="_blank" rel="noopener noreferrer"
+                class="flex items-center gap-4 px-6 py-4 text-on-surface-variant hover:bg-surface-container transition-all">
+                <span class="material-symbols-outlined">code</span>
+                <span class="font-label-caps text-label-caps uppercase">GITHUB</span>
+            </a>
+            <a href="https://pypi.org/project/py-easysync/" target="_blank" rel="noopener noreferrer"
+                class="flex items-center gap-4 px-6 py-4 text-on-surface-variant hover:bg-surface-container transition-all">
+                <span class="material-symbols-outlined">inventory_2</span>
+                <span class="font-label-caps text-label-caps uppercase">PYPI</span>
+            </a>
+        </nav>
 
-                        <button class="action-btn" onclick="triggerHostUpdate()">
-                            > state.points += <span class="num">10</span>
-                        </button>
-                        <button class="action-btn" onclick="triggerHostListUpdate()">
-                            > state.users.<span class="func">append</span>(<span class="str">"Alice"</span>)
-                        </button>
-                    </div>
+        <a href="https://bio.galtech.cc" target="_blank" rel="noopener noreferrer"
+            class="p-6 border-t border-outline-variant flex items-center gap-3 text-on-surface-variant hover:text-primary transition-colors">
+            <span class="material-symbols-outlined">person</span>
+            <span class="font-label-caps text-[11px] uppercase">GalTech · Portfolio</span>
+        </a>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div id="main-scroll" class="flex-1 flex flex-col min-w-0 md:ml-64 h-screen overflow-y-scroll relative data-grid-pattern scroll-smooth">
+
+        <!-- TopAppBar -->
+        <header
+            class="w-full top-0 sticky shrink-0 bg-surface/90 backdrop-blur-sm border-b border-outline-variant flex justify-between items-center h-16 px-gutter z-30">
+            <div class="flex items-center gap-4">
+                <button id="open-menu-btn"
+                    class="md:hidden text-primary p-2 -ml-2 rounded hover:bg-surface-container-low transition-colors">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <h1 class="font-display-lg text-[20px] md:text-display-lg-mobile text-primary tracking-tighter uppercase"
+                    data-en="OVERVIEW" data-fr="APERÇU">OVERVIEW</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="lang-btn"
+                    class="flex items-center gap-2 px-4 py-2 bg-surface-container-low hover:bg-surface-container border border-outline-variant rounded-full text-primary shadow-sm transition-all hover:shadow-md"
+                    title="Langue / Language">
+                    <span class="font-label-caps text-label-caps">FR</span>
+                    <span class="material-symbols-outlined text-[20px]">translate</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 flex flex-col fade-in">
+            <div class="w-full p-margin-mobile md:p-gutter">
+                <div class="max-w-container-max mx-auto w-full">
+
+                    <!-- ============================================== -->
+                    <!-- HERO                                           -->
+                    <!-- ============================================== -->
+                    <section class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-8 md:py-16">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-3 mb-6">
+                                <span class="font-code-snippet text-[12px] text-secondary border border-secondary px-3 py-1">PYTHON · NETWORK</span>
+                                <span class="font-label-caps text-[12px] text-on-surface-variant flex items-center gap-2">
+                                    <span class="relative flex w-2 h-2">
+                                        <span class="animate-ping-slow absolute inline-flex h-full w-full rounded-full bg-[#10b981] opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-[#10b981]"></span>
+                                    </span>
+                                    TCP · UDP · SHM
+                                </span>
+                            </div>
+                            <h2 class="font-display-lg text-[40px] md:text-display-lg text-on-background uppercase tracking-tight leading-tight mb-6">
+                                Easy<span class="text-primary">Sync</span>
+                            </h2>
+                            <p class="text-[18px] md:text-[20px] font-medium text-primary mb-4"
+                                data-en="Real-time state synchronization for Python."
+                                data-fr="Synchronisation d'état en temps réel pour Python.">Real-time state synchronization for Python.</p>
+                            <p class="font-body-base text-body-base text-on-surface-variant mb-8 max-w-xl"
+                                data-en="Manipulate your Python objects as if the network didn't exist. A transparent proxy intercepts every mutation and propagates it instantly to all connected machines."
+                                data-fr="Manipulez vos objets Python comme si le réseau n'existait pas. Un proxy transparent intercepte chaque mutation et la propage instantanément à toutes les machines connectées.">
+                                Manipulate your Python objects as if the network didn't exist. A transparent proxy intercepts every mutation and propagates it instantly to all connected machines.
+                            </p>
+
+                            <!-- Install box -->
+                            <div class="flex items-stretch border border-outline-variant bg-surface-container-lowest shadow-sm max-w-md mb-6">
+                                <span class="flex items-center px-4 border-r border-outline-variant text-primary font-code-snippet">$</span>
+                                <code class="flex-1 flex items-center px-4 py-3 font-code-snippet text-[14px] text-on-surface">pip install py-easysync</code>
+                                <button data-copy="pip install py-easysync"
+                                    class="px-4 border-l border-outline-variant text-outline hover:text-primary hover:bg-surface-container-low transition-colors"
+                                    title="Copy">
+                                    <span class="material-symbols-outlined text-[20px]">content_copy</span>
+                                </button>
+                            </div>
+
+                            <div class="flex flex-wrap gap-3">
+                                <a href="wiki.html"
+                                    class="flex items-center gap-2 px-5 py-3 bg-primary text-on-primary font-label-caps text-label-caps uppercase shadow-sm hover:shadow-md hover:bg-[#00429c] transition-all">
+                                    <span class="material-symbols-outlined text-[18px]">menu_book</span>
+                                    <span data-en="READ THE DOCS" data-fr="LIRE LA DOC">READ THE DOCS</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Diagram + live demo -->
+                        <div id="cluster" class="border border-outline-variant bg-surface-container-lowest shadow-sm flex flex-col">
+                            <div class="border-b border-outline-variant p-4 flex justify-between items-center bg-surface">
+                                <span class="font-label-caps text-[12px] text-primary">SYNC_CLUSTER</span>
+                                <span class="font-code-snippet text-[10px] text-[#10b981] flex items-center gap-2">
+                                    <span class="inline-block w-2 h-2 rounded-full bg-[#10b981]"></span>LIVE
+                                </span>
+                            </div>
+                            <div class="relative bg-surface-container-low">
+                                <svg id="cluster-svg" viewBox="0 0 480 300" class="w-full h-auto select-none" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- lignes (tracées du client vers le serveur) -->
+                                    <g fill="none" stroke-width="2">
+                                        <path id="link-A" class="bus-line" stroke="#0056c6" d="M110,74 L110,150 L180,150" />
+                                        <path id="link-B" class="bus-line" stroke="#0056c6" d="M370,74 L370,150 L300,150" />
+                                        <path id="link-C" class="bus-line" stroke="#006e0b" d="M240,240 L240,190" />
+                                    </g>
+                                    <!-- clients -->
+                                    <g class="cluster-node" data-node="A" transform="translate(40,26)">
+                                        <rect class="node-box" width="140" height="48" fill="#ffffff" stroke="#c2c6d8" />
+                                        <text x="70" y="20" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="600" fill="#191c1e">CLIENT_A</text>
+                                        <text class="node-val" x="70" y="37" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#424655">score 0 · players 0</text>
+                                    </g>
+                                    <g class="cluster-node" data-node="B" transform="translate(300,26)">
+                                        <rect class="node-box" width="140" height="48" fill="#ffffff" stroke="#c2c6d8" />
+                                        <text x="70" y="20" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="600" fill="#191c1e">CLIENT_B</text>
+                                        <text class="node-val" x="70" y="37" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#424655">score 0 · players 0</text>
+                                    </g>
+                                    <g class="cluster-node" data-node="C" transform="translate(160,240)">
+                                        <rect class="node-box" width="160" height="48" fill="#eafdf0" stroke="#a1e8af" />
+                                        <text x="80" y="20" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#006e0b">CLIENT_C · UDP</text>
+                                        <text class="node-val" x="80" y="37" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#006e0b">score 0 · players 0</text>
+                                    </g>
+                                    <!-- serveur -->
+                                    <g id="cluster-server" transform="translate(180,110)">
+                                        <rect class="node-box" width="120" height="80" fill="#ffffff" stroke="#0056c6" stroke-width="2" />
+                                        <rect width="120" height="20" fill="#0056c6" />
+                                        <text x="60" y="14" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#ffffff">SyncServer</text>
+                                        <text id="srv-score" x="10" y="38" font-family="JetBrains Mono" font-size="10" fill="#424655">score = 0</text>
+                                        <text id="srv-players" x="10" y="54" font-family="JetBrains Mono" font-size="10" fill="#424655">players = []</text>
+                                        <text id="srv-ops" x="10" y="70" font-family="JetBrains Mono" font-size="10" fill="#727787">relayed = 0</text>
+                                    </g>
+                                    <g id="cluster-packets"></g>
+                                </svg>
+                            </div>
+                            <!-- Contrôles -->
+                            <div class="border-t border-outline-variant p-3 flex flex-wrap items-center gap-2 font-code-snippet text-[11px]">
+                                <div class="flex border border-outline-variant" role="group" aria-label="Source">
+                                    <button class="src-btn px-3 py-1.5 transition-colors" data-src="A">A</button>
+                                    <button class="src-btn px-3 py-1.5 border-l border-outline-variant transition-colors" data-src="B">B</button>
+                                    <button class="src-btn px-3 py-1.5 border-l border-outline-variant transition-colors" data-src="C">C</button>
+                                </div>
+                                <button class="op-btn px-3 py-1.5 border border-outline-variant bg-surface-container-lowest text-on-surface hover:border-primary transition-colors" data-op="score">state.score += <span class="num">10</span></button>
+                                <button class="op-btn px-3 py-1.5 border border-outline-variant bg-surface-container-lowest text-on-surface hover:border-primary transition-colors" data-op="append">state.players.<span class="fn">append</span>()</button>
+                                <button class="op-btn ml-auto px-2 py-1.5 text-outline hover:text-primary transition-colors" data-op="reset" title="Reset">
+                                    <span class="material-symbols-outlined text-[18px] align-middle">restart_alt</span>
+                                </button>
+                            </div>
+                            <div class="border-t border-outline-variant p-3 font-code-snippet text-[11px] text-outline truncate">
+                                <span id="cluster-log" data-en="Pick a client, then mutate its state." data-fr="Choisissez un client, puis modifiez son état.">Pick a client, then mutate its state.</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================== -->
+                    <!-- STATS                                          -->
+                    <!-- ============================================== -->
+                    <section class="grid grid-cols-2 md:grid-cols-4 border border-outline-variant bg-surface-container-lowest shadow-sm mb-16">
+                        <div class="p-6 border-b md:border-b-0 border-r border-outline-variant">
+                            <div class="font-display-lg text-[28px] text-primary">100<span class="text-[16px]">µs</span></div>
+                            <div class="font-label-caps text-[11px] text-outline mt-2 uppercase" data-en="Median latency (TCP)" data-fr="Latence médiane (TCP)">Median latency (TCP)</div>
+                        </div>
+                        <div class="p-6 border-b md:border-b-0 md:border-r border-outline-variant">
+                            <div class="font-display-lg text-[28px] text-primary">100k<span class="text-[16px]">/s</span></div>
+                            <div class="font-label-caps text-[11px] text-outline mt-2 uppercase" data-en="Updates delivered" data-fr="Mises à jour livrées">Updates delivered</div>
+                        </div>
+                        <div class="p-6 border-r border-outline-variant">
+                            <div class="font-display-lg text-[28px] text-primary">5<span class="text-[16px]">ms</span></div>
+                            <div class="font-label-caps text-[11px] text-outline mt-2 uppercase" data-en="Broadcast to 100 clients" data-fr="Diffusion à 100 clients">Broadcast to 100 clients</div>
+                        </div>
+                        <div class="p-6">
+                            <div class="font-display-lg text-[28px] text-secondary">~1<span class="text-[16px]">GB/s</span></div>
+                            <div class="font-label-caps text-[11px] text-outline mt-2 uppercase" data-en="Binary payloads" data-fr="Payloads binaires">Binary payloads</div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================== -->
+                    <!-- FEATURES                                       -->
+                    <!-- ============================================== -->
+                    <section class="mb-16">
+                        <div class="mb-8 border-b border-outline-variant pb-4">
+                            <h2 class="font-display-lg text-display-lg-mobile md:text-[32px] text-on-background uppercase tracking-tight"
+                                data-en="FEATURES" data-fr="FONCTIONNALITÉS">FEATURES</h2>
+                            <p class="font-body-base text-body-base text-on-surface-variant mt-2"
+                                data-en="One decorator, zero sockets to manage. Everything else is handled for you."
+                                data-fr="Un seul décorateur, aucun socket à gérer. Tout le reste est pris en charge.">
+                                One decorator, zero sockets to manage. Everything else is handled for you.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-base">
+                            <!-- Card -->
+                            <div class="flex flex-col bg-surface border border-outline-variant group hover:border-primary transition-colors duration-300 shadow-sm">
+                                <div class="p-4 border-b border-outline-variant flex justify-between items-start bg-surface-bright">
+                                    <h3 class="font-headline-md text-[16px] text-primary uppercase" data-en="Transparent proxy" data-fr="Proxy transparent">Transparent proxy</h3>
+                                    <span class="material-symbols-outlined text-primary">auto_fix_high</span>
+                                </div>
+                                <div class="p-4 flex-1 flex flex-col gap-4">
+                                    <p class="font-body-sm text-[14px] text-on-surface-variant"
+                                        data-en="Attribute assignments, item writes and in-place mutations (append, update…) are intercepted and propagated automatically."
+                                        data-fr="Affectations d'attributs, écritures d'éléments et mutations en place (append, update…) sont interceptées et propagées automatiquement.">
+                                        Attribute assignments, item writes and in-place mutations (append, update…) are intercepted and propagated automatically.</p>
+                                    <div class="mt-auto font-code-snippet text-[11px] flex flex-wrap gap-2 text-on-surface-variant">
+                                        <span class="border border-outline-variant px-2 py-1 bg-surface-bright">@SyncedObject</span>
+                                        <span class="border border-outline-variant px-2 py-1 bg-surface-bright">SyncedVar</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col bg-surface border border-outline-variant group hover:border-primary transition-colors duration-300 shadow-sm">
+                                <div class="p-4 border-b border-outline-variant flex justify-between items-start bg-surface-bright">
+                                    <h3 class="font-headline-md text-[16px] text-primary uppercase" data-en="Hybrid TCP/UDP" data-fr="Hybride TCP/UDP">Hybrid TCP/UDP</h3>
+                                    <span class="material-symbols-outlined text-primary">swap_calls</span>
+                                </div>
+                                <div class="p-4 flex-1 flex flex-col gap-4">
+                                    <p class="font-body-sm text-[14px] text-on-surface-variant"
+                                        data-en="TCP for critical state, UDP for streams where a lost value is replaced by the next one. Pick the transport for each synced class."
+                                        data-fr="TCP pour les états critiques, UDP pour les flux où une valeur perdue est remplacée par la suivante. Choisissez le transport pour chaque classe synchronisée.">
+                                        TCP for critical state, UDP for streams where a lost value is replaced by the next one. Pick the transport for each synced class.</p>
+                                    <div class="mt-auto font-code-snippet text-[11px] flex flex-wrap gap-2 text-on-surface-variant">
+                                        <span class="border border-outline-variant px-2 py-1 bg-surface-bright">transport="udp"</span>
+                                        <span class="border border-outline-variant px-2 py-1 bg-surface-bright uppercase">asyncio</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col bg-surface border border-outline-variant group hover:border-primary transition-colors duration-300 shadow-sm">
+                                <div class="p-4 border-b border-outline-variant flex justify-between items-start bg-surface-bright">
+                                    <h3 class="font-headline-md text-[16px] text-primary uppercase">Delta Sync</h3>
+                                    <span class="material-symbols-outlined text-primary">difference</span>
+                                </div>
+                                <div class="p-4 flex-1 flex flex-col gap-4">
+                                    <p class="font-body-sm text-[14px] text-on-surface-variant"
+                                        data-en="XOR + zlib differentials for heavy objects: only what changed goes on the wire: 98% fewer bytes on a 720p frame."
+                                        data-fr="Différentiels XOR + zlib pour les objets lourds : seul ce qui change transite : 98 % d'octets en moins sur une image 720p.">
+                                        XOR + zlib differentials for heavy objects: only what changed goes on the wire: 98% fewer bytes on a 720p frame.</p>
+                                    <div class="mt-auto font-code-snippet text-[11px] flex flex-wrap gap-2 text-on-surface-variant">
+                                        <span class="border border-outline-variant px-2 py-1 bg-surface-bright uppercase">numpy</span>
+                                        <span class="border border-outline-variant px-2 py-1 bg-surface-bright uppercase">torch</span>
+                                        <span class="border border-outline-variant px-2 py-1 bg-surface-bright uppercase">codecs</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col bg-surface border border-outline-variant group hover:border-primary transition-colors duration-300 shadow-sm">
+                                <div class="p-4 border-b border-outline-variant flex justify-between items-start bg-surface-bright">
+                                    <h3 class="font-headline-md text-[16px] text-primary uppercase" data-en="Zero-socket IPC" data-fr="IPC zéro-socket">Zero-socket IPC</h3>
+                                    <span class="material-symbols-outlined text-primary">memory</span>
+                                </div>
+                                <div class="p-4 flex-1 flex flex-col gap-4">
+                                    <p class="font-body-sm text-[14px] text-on-surface-variant"
+                                        data-en="Between processes on the same machine, the SHM mode syncs through shared memory with EasySHM. No server, no port."
+                                        data-fr="Entre processus d'une même machine, le mode SHM synchronise via la mémoire partagée avec EasySHM. Ni serveur, ni port.">
+                                        Between processes on the same machine, the SHM mode syncs through shared memory with EasySHM. No server, no port.</p>
+                                    <div class="mt-auto font-code-snippet text-[11px] flex flex-wrap gap-2 text-on-surface-variant">
+                                        <span class="border border-outline-variant px-2 py-1 bg-surface-bright">shm_connect()</span>
+                                        <span class="border border-outline-variant px-2 py-1 bg-surface-bright uppercase">easyshm</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col bg-surface border border-outline-variant group hover:border-primary transition-colors duration-300 shadow-sm">
+                                <div class="p-4 border-b border-outline-variant flex justify-between items-start bg-surface-bright">
+                                    <h3 class="font-headline-md text-[16px] text-primary uppercase" data-en="Live telemetry" data-fr="Télémétrie live">Live telemetry</h3>
+                                    <span class="material-symbols-outlined text-primary">monitoring</span>
+                                </div>
+                                <div class="p-4 flex-1 flex flex-col gap-4">
+                                    <p class="font-body-sm text-[14px] text-on-surface-variant"
+                                        data-en="Latency, bandwidth and packet counts tracked in real time, with a built-in ping/pong for precise health checks."
+                                        data-fr="Latence, débit et nombre de paquets suivis en temps réel, avec un ping/pong intégré pour des diagnostics précis.">
+                                        Latency, bandwidth and packet counts tracked in real time, with a built-in ping/pong for precise health checks.</p>
+                                    <div class="mt-auto font-code-snippet text-[11px] flex flex-wrap gap-2 text-on-surface-variant">
+                                        <span class="border border-outline-variant px-2 py-1 bg-surface-bright">client.stats</span>
+                                        <span class="border border-outline-variant px-2 py-1 bg-surface-bright">ping()</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col bg-surface border border-outline-variant group hover:border-primary transition-colors duration-300 shadow-sm">
+                                <div class="p-4 border-b border-outline-variant flex justify-between items-start bg-surface-bright">
+                                    <h3 class="font-headline-md text-[16px] text-primary uppercase" data-en="Secure auth" data-fr="Authentification">Secure auth</h3>
+                                    <span class="material-symbols-outlined text-primary">lock</span>
+                                </div>
+                                <div class="p-4 flex-1 flex flex-col gap-4">
+                                    <p class="font-body-sm text-[14px] text-on-surface-variant"
+                                        data-en="Protect a SyncServer with your own authentication handler: rejected clients never reach the shared state."
+                                        data-fr="Protégez un SyncServer avec votre propre gestionnaire d'authentification : les clients refusés n'accèdent jamais à l'état partagé.">
+                                        Protect a SyncServer with your own authentication handler: rejected clients never reach the shared state.</p>
+                                    <div class="mt-auto font-code-snippet text-[11px] flex flex-wrap gap-2 text-on-surface-variant">
+                                        <span class="border border-outline-variant px-2 py-1 bg-surface-bright">@server.on_auth</span>
+                                        <span class="border border-outline-variant px-2 py-1 bg-surface-bright">auth_payload</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ============================================== -->
+                    <!-- PERFORMANCE                                    -->
+                    <!-- ============================================== -->
+                    <section class="mb-16">
+                        <div class="mb-8 border-b border-outline-variant pb-4">
+                            <h2 class="font-display-lg text-display-lg-mobile md:text-[32px] text-on-background uppercase tracking-tight">PERFORMANCE</h2>
+                            <p class="font-body-base text-body-base text-on-surface-variant mt-2"
+                                data-en="Measured, not promised: separate processes, a real SyncServer and thousands of updates through <code>@SyncedObject</code>."
+                                data-fr="Mesuré, pas promis : processus séparés, un vrai SyncServer et des milliers de mises à jour via <code>@SyncedObject</code>.">
+                                Measured, not promised: separate processes, a real SyncServer and thousands of updates through <code>@SyncedObject</code>.</p>
+                        </div>
+                        <div class="border border-outline-variant bg-surface-container-lowest shadow-sm overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-surface border-b border-outline-variant">
+                                    <tr class="font-label-caps text-[11px] text-outline uppercase">
+                                        <th class="p-4" data-en="Measure" data-fr="Mesure">Measure</th>
+                                        <th class="p-4" data-en="Result" data-fr="Résultat">Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="font-code-snippet text-[13px] text-on-surface-variant">
+                                    <tr class="border-b border-outline-variant">
+                                        <td class="p-4" data-en="Update latency, one-way, TCP (median / p99)" data-fr="Latence d'une mise à jour, aller simple, TCP (médiane / p99)">Update latency, one-way, TCP (median / p99)</td>
+                                        <td class="p-4 font-bold text-primary">100 µs / 290 µs</td>
+                                    </tr>
+                                    <tr class="border-b border-outline-variant">
+                                        <td class="p-4" data-en="Same, UDP transport" data-fr="Idem, transport UDP">Same, UDP transport</td>
+                                        <td class="p-4 font-bold text-primary">290 µs / 1.1 ms</td>
+                                    </tr>
+                                    <tr class="border-b border-outline-variant">
+                                        <td class="p-4" data-en="Same, SHM mode (<code>shm_connect</code>)" data-fr="Idem, mode SHM (<code>shm_connect</code>)">Same, SHM mode (<code>shm_connect</code>)</td>
+                                        <td class="p-4 font-bold text-primary">230 µs / 680 µs</td>
+                                    </tr>
+                                    <tr class="border-b border-outline-variant">
+                                        <td class="p-4" data-en="Sustained updates, one sender → one receiver" data-fr="Mises à jour en continu, un émetteur → un récepteur">Sustained updates, one sender → one receiver</td>
+                                        <td class="p-4 font-bold text-primary" data-en="~100,000 / s, 100 % delivered" data-fr="~100 000 / s, 100 % livrées">~100,000 / s, 100 % delivered</td>
+                                    </tr>
+                                    <tr class="border-b border-outline-variant">
+                                        <td class="p-4" data-en="Broadcast until every client has it: 10 / 50 / 100 clients (median)" data-fr="Diffusion jusqu'à réception par tous : 10 / 50 / 100 clients (médiane)">Broadcast until every client has it: 10 / 50 / 100 clients (median)</td>
+                                        <td class="p-4 font-bold text-primary">1.1 / 3.0 / 5.2 ms</td>
+                                    </tr>
+                                    <tr class="border-b border-outline-variant">
+                                        <td class="p-4" data-en="Binary payload, 1 MB / 10 MB" data-fr="Payload binaire, 1 Mo / 10 Mo">Binary payload, 1 MB / 10 MB</td>
+                                        <td class="p-4 font-bold text-primary">1.0 ms / 9.5 ms</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-4" data-en="Delta Sync, 720p frame with a 100×100 px change" data-fr="Delta Sync, image 720p avec 100×100 px modifiés">Delta Sync, 720p frame with a 100×100 px change</td>
+                                        <td class="p-4 font-bold text-secondary" data-en="2.76 MB → 45 KB (−98 %)" data-fr="2,76 Mo → 45 Ko (−98 %)">2.76 MB → 45 KB (−98 %)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="font-body-sm text-[13px] text-outline mt-4"
+                            data-en="Version 0.2.0, Linux (WSL2), Python 3.12, 12 CPU, localhost. Latency is half of a ping/pong round trip between two processes; the delta figure is the size of the update actually sent. Run <code>python benchmarks/perf.py</code> to measure your machine."
+                            data-fr="Version 0.2.0, Linux (WSL2), Python 3.12, 12 CPU, localhost. La latence est la moitié d'un aller-retour ping/pong entre deux processus ; le chiffre delta est la taille de la mise à jour réellement envoyée. Lancez <code>python benchmarks/perf.py</code> pour mesurer votre machine.">
+                            Version 0.2.0, Linux (WSL2), Python 3.12, 12 CPU, localhost. Latency is half of a ping/pong round trip between two processes; the delta figure is the size of the update actually sent. Run <code>python benchmarks/perf.py</code> to measure your machine.</p>
+                    </section>
+
                 </div>
             </div>
-
-            <button class="btn btn-secondary" style="margin: 1rem 0; font-size: 0.9rem;" onclick="addClientNode()"><i
-                    class="ri-add-line"></i> Node</button>
-
-            <div class="sandbox-clients-container" id="clients-wrapper"></div>
-        </div>
-    </section>
-
-    <section class="container" id="features">
-        <h2 style="text-align: center; margin-bottom: 3rem;" data-en="Why EasySync?" data-fr="Pourquoi EasySync ?">Why
-            EasySync?</h2>
-        <div class="grid-2">
-            <div class="card">
-                <div class="card-icon"><i class="ri-pulse-line" style="color: var(--accent-green)"></i></div>
-                <h3 data-en="Hybrid TCP/UDP Transport" data-fr="Transport Hybride TCP/UDP">Hybrid TCP/UDP Transport</h3>
-                <p data-en="Use UDP for low-latency streaming and TCP for critical state. Choose your transport per attribute for maximum efficiency."
-                    data-fr="Utilisez l'UDP pour le streaming faible latence et le TCP pour les états critiques. Choisissez votre transport par attribut.">
-                    Use UDP for low-latency streaming and TCP for critical state. Choose your transport per attribute for maximum efficiency.</p>
-            </div>
-            <div class="card">
-                <div class="card-icon"><i class="ri-line-chart-line" style="color: var(--accent-purple)"></i></div>
-                <h3 data-en="Delta Sync (XOR+Zlib)" data-fr="Delta Sync (XOR+Zlib)">Delta Sync (XOR+Zlib)</h3>
-                <p data-en="Differentials for heavy objects (NumPy, Torch). Only send what changed, saving up to 99% of bandwidth for large datasets."
-                    data-fr="Différentiels pour objets lourds (NumPy, Torch). N'envoyez que ce qui a changé, économisant jusqu'à 99% de bande passante.">
-                    Differentials for heavy objects (NumPy, Torch). Only send what changed, saving up to 99% of bandwidth for large datasets.</p>
-            </div>
-            <div class="card">
-                <div class="card-icon"><i class="ri-cpu-line" style="color: var(--cloud-primary)"></i></div>
-                <h3 data-en="Zero-Socket IPC (EasySHM)" data-fr="IPC Zéro-Socket (EasySHM)">Zero-Socket IPC (EasySHM)</h3>
-                <p data-en="Unmatched local performance using Shared Memory. Communicate between local processes at RAM speeds (< 0.05ms latency)."
-                    data-fr="Performances locales inégalées via Mémoire Partagée. Communiquez entre processus locaux à la vitesse de la RAM (latence < 0.05ms).">
-                    Unmatched local performance using Shared Memory. Communicate between local processes at RAM speeds (&lt; 0.05ms latency).</p>
-            </div>
-            <div class="card">
-                <div class="card-icon"><i class="ri-dashboard-3-line" style="color: var(--accent-orange)"></i></div>
-                <h3 data-en="Live Telemetry Overlay" data-fr="Superposition de Télémétrie">Live Telemetry Overlay</h3>
-                <p data-en="Track latency, bandwidth, and packet counts in real-time. Built-in ping/pong system for precise network health checks."
-                    data-fr="Suivez la latence, le débit et le nombre de paquets en temps réel. Système ping/pong intégré pour des diagnostics précis.">
-                    Track latency, bandwidth, and packet counts in real-time. Built-in ping/pong system for precise network health checks.</p>
-            </div>
-            <div class="card">
-                <div class="card-icon"><i class="ri-computer-line"></i></div>
-                <h3 data-en="Example: Remote Desktop" data-fr="Exemple : Remote Desktop">Example: Remote Desktop</h3>
-                <p data-en="New demo showcasing 720p 30FPS screen streaming and input relay using only EasySync's high-speed decorators."
-                    data-fr="Nouvelle démo montrant le streaming 720p 30FPS et le contrôle distant via les décorateurs ultra-rapides d'EasySync.">
-                    New demo showcasing 720p 30FPS screen streaming and input relay using only EasySync's high-speed decorators.</p>
-            </div>
-        </div>
-    </section>
-
-    <footer class="footer">
-        <div class="container" style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-            <p class="footer-text">
-                <strong>EasySync</strong> — <span data-en="Free your Python scripts."
-                    data-fr="Libérez vos scripts Python.">Free your Python scripts.</span>
-            </p>
-            <div class="footer-links" style="display: flex; gap: 1.5rem;">
-                <a href="wiki.html">
-                    <i class="ri-book-read-line"></i> Wiki
-                </a>
-                <a href="https://github.com/GalTechDev/easysync" target="_blank">
-                    <i class="ri-github-fill"></i> GitHub
-                </a>
-                <a href="https://github.com/GalTechDev/easysync/issues" target="_blank">
-                    <i class="ri-bug-line"></i> Issues
-                </a>
-                <a href="https://pypi.org/project/py-easysync/" target="_blank">
-                    <i class="ri-box-3-line"></i> PyPi
-                </a>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        // ---- i18n ----
-        let currentLang = "en";
-
-        function toggleLang() {
-            currentLang = currentLang === "en" ? "fr" : "en";
-            document.getElementById("lang-btn").textContent = currentLang === "en" ? "FR" : "EN";
-            document.querySelectorAll("[data-en]").forEach(el => {
-                const text = el.getAttribute("data-" + currentLang);
-                if (text) el.innerHTML = text;
-            });
-        }
-
-        // ---- Quickstart ----
-        function toggleQuickstart() {
-            var banner = document.getElementById("quickstart-banner");
-            banner.style.display = (banner.style.display === "none") ? "flex" : "none";
-        }
-
-        function copyPip() {
-            navigator.clipboard.writeText("pip install easysync");
-            const icon = document.getElementById('copyIcon');
-            icon.className = 'ri-check-line';
-            icon.style.color = 'var(--accent-green)';
-            setTimeout(() => {
-                icon.className = 'ri-file-copy-line';
-                icon.style.color = 'var(--text-secondary)';
-            }, 2000);
-        }
-
-        // ---- Scalability Sandbox ----
-        let currentUserList = [];
-        let points = 0;
-        let clientIdCounter = 0;
-
-        function shootPacket(srcEl, destEl, callback) {
-            const srcRect = srcEl.getBoundingClientRect();
-            const destRect = destEl.getBoundingClientRect();
-
-            const dot = document.createElement('div');
-            dot.className = 'packet';
-            dot.style.position = 'fixed';
-            dot.style.top = (srcRect.top + srcRect.height / 2 - 5) + 'px';
-            dot.style.left = (srcRect.left + srcRect.width / 2 - 5) + 'px';
-            dot.style.opacity = '1';
-            document.body.appendChild(dot);
-
-            void dot.offsetWidth;
-            dot.style.top = (destRect.top + destRect.height / 2 - 5) + 'px';
-            dot.style.left = (destRect.left + destRect.width / 2 - 5) + 'px';
-
-            setTimeout(() => {
-                dot.style.opacity = '0';
-                setTimeout(() => dot.remove(), 200);
-                if (callback) callback();
-            }, 400);
-        }
-
-        function addClientNode() {
-            clientIdCounter++;
-            const id = clientIdCounter;
-            const html = `
-            <div class="terminal sandbox-client" id="client-terminal-${id}">
-                <div class="terminal-header">
-                    <span>client_${id}.py</span>
-                    <span style="color: var(--cloud-primary)">● Connected</span>
-                </div>
-                <div class="terminal-body">
-                    state.points = <span class="live-var client-stats">${points}</span><br>
-                    state.users = <span class="live-var client-users">[${currentUserList.join(", ")}]</span><br>
-                    <div class="bandwidth-stats" id="bw-${id}">TCP Full Sync: 8.4 KB/s</div><br>
-                    <button class="action-btn" onclick="triggerClientUpdate(${id})">
-                        > state.points += <span class="num">5</span>
-                    </button>
-                    <button class="action-btn" onclick="triggerClientListUpdate(${id})">
-                        > state.users.<span class="func">append</span>(<span class="str">"Bob"</span>)
-                    </button>
-                </div>
-            </div>`;
-            document.getElementById('clients-wrapper').insertAdjacentHTML('beforeend', html);
-        }
-
-        function playUpdatedAnim(el) {
-            el.classList.add('updated');
-            setTimeout(() => el.classList.remove('updated'), 300);
-        }
-
-        function triggerHostUpdate() {
-            points += 10;
-            document.getElementById('hostStats').innerText = points;
-            const hostTerm = document.getElementById('host-terminal');
-            document.querySelectorAll('.sandbox-client').forEach(client => {
-                shootPacket(hostTerm, client, () => {
-                    const s = client.querySelector('.client-stats');
-                    s.innerText = points;
-                    playUpdatedAnim(s);
-                });
-            });
-        }
-
-        function triggerHostListUpdate() {
-            currentUserList.push("'Alice'");
-            const text = "[" + currentUserList.join(", ") + "]";
-            document.getElementById('hostUsers').innerText = text;
-            const hostTerm = document.getElementById('host-terminal');
-            document.querySelectorAll('.sandbox-client').forEach(client => {
-                shootPacket(hostTerm, client, () => {
-                    const u = client.querySelector('.client-users');
-                    u.innerText = text;
-                    playUpdatedAnim(u);
-                });
-            });
-        }
-
-        function triggerClientUpdate(id) {
-            points += 5;
-            const ct = document.getElementById(`client-terminal-${id}`);
-            ct.querySelector('.client-stats').innerText = points;
-            const hostTerm = document.getElementById('host-terminal');
-            shootPacket(ct, hostTerm, () => {
-                const h = document.getElementById('hostStats');
-                h.innerText = points;
-                playUpdatedAnim(h);
-                document.querySelectorAll('.sandbox-client').forEach(other => {
-                    if (other.id !== `client-terminal-${id}`) {
-                        shootPacket(hostTerm, other, () => {
-                            const s = other.querySelector('.client-stats');
-                            s.innerText = points;
-                            playUpdatedAnim(s);
-                        });
-                    }
-                });
-            });
-        }
-
-        function triggerClientListUpdate(id) {
-            currentUserList.push("'Bob'");
-            const text = "[" + currentUserList.join(", ") + "]";
-            const ct = document.getElementById(`client-terminal-${id}`);
-            ct.querySelector('.client-users').innerText = text;
-            const bw = document.getElementById(`bw-${id}`);
-            bw.innerHTML = 'UDP Delta Sync: <span style="color: #fff">0.12 KB/s</span> (98% Saving)';
-            
-            const hostTerm = document.getElementById('host-terminal');
-            shootPacket(ct, hostTerm, () => {
-                const h = document.getElementById('hostUsers');
-                h.innerText = text;
-                playUpdatedAnim(h);
-                document.querySelectorAll('.sandbox-client').forEach(other => {
-                    if (other.id !== `client-terminal-${id}`) {
-                        shootPacket(hostTerm, other, () => {
-                            const u = other.querySelector('.client-users');
-                            u.innerText = text;
-                            const obw = other.querySelector('.bandwidth-stats');
-                            obw.innerHTML = 'UDP Delta Sync: <span style="color: #fff">0.12 KB/s</span> (98% Saving)';
-                            playUpdatedAnim(u);
-                        });
-                    }
-                });
-            });
-        }
-
-        addClientNode();
-    </script>
+            <footer class="w-full p-4 text-center mt-auto bg-surface border-t border-outline-variant">
+                <p class="font-body-sm text-on-surface-variant">
+                    © 2026 GalTechDev
+                </p>
+            </footer>
+        </main>
+    </div>
+    <script src="js/app.js"></script>
+    <script src="js/cluster.js"></script>
 </body>
-
 </html>
